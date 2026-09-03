@@ -13,6 +13,8 @@ model User {
   email     String   @unique
   password  String // bcrypt hash
   role      String   @default("staff") // "admin" | "staff"
+  defaultRate       Float? // personal default interest rate; falls back to org-wide Settings if unset
+  defaultPeriodDays Int?   // personal default period length; falls back to org-wide Settings if unset
   createdAt DateTime @default(now())
 }
 

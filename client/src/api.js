@@ -94,6 +94,7 @@ export const api = {
 
   getSettings: () => apiFetch("/settings"),
   updateSettings: (data) => apiFetch("/settings", { method: "PUT", body: data }),
+  updateMySettings: (data) => apiFetch("/settings/me", { method: "PUT", body: data }),
 };
 
 export { ApiError };

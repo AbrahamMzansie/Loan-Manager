@@ -7,11 +7,14 @@ const { ownerScope } = require("../utils/scope");
 const router = express.Router();
 router.use(requireAuth);
 
-async function getDefaults() {
-  const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+async function getDefaults(userId) {
+  const [user, settings] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.settings.findUnique({ where: { id: 1 } }),
+  ]);
   return {
-    interestRate: settings?.defaultRate ?? 0.3,
-    periodDays: settings?.defaultPeriodDays ?? 30,
+    interestRate: user?.defaultRate ?? settings?.defaultRate ?? 0.3,
+    periodDays: user?.defaultPeriodDays ?? settings?.defaultPeriodDays ?? 30,
   };
 }
 
@@ -52,7 +55,7 @@ router.post("/", async (req, res) => {
   const customer = await prisma.customer.findFirst({ where: { id: Number(customerId), ...ownerScope(req) } });
   if (!customer) return res.status(404).json({ error: "Customer not found" });
 
-  const defaults = await getDefaults();
+  const defaults = await getDefaults(req.user.id);
   const loan = await prisma.loan.create({
     data: {
       customerId: Number(customerId),
