@@ -1,0 +1,70 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String // bcrypt hash
+  role      String   @default("staff") // "admin" | "staff"
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  idNumber  String?
+  notes     String?
+  createdAt DateTime @default(now())
+  loans     Loan[]
+}
+
+model Loan {
+  id           Int       @id @default(autoincrement())
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  customerId   Int
+  principal    Float
+  interestRate Float     @default(0.30) // e.g. 0.30 = 30% per period
+  periodDays   Int       @default(30) // length of one interest period, in days
+  startDate    DateTime  @default(now())
+  status       String    @default("active") // "active" | "paid" | "written_off"
+  notes        String?
+  createdBy    Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  payments     Payment[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model Payment {
+  id         Int      @id @default(autoincrement())
+  loan       Loan     @relation(fields: [loanId], references: [id])
+  loanId     Int
+  amount     Float
+  date       DateTime @default(now())
+  method     String? // "cash" | "eft" | "other"
+  note       String?
+  recordedBy Int?
+  createdAt  DateTime @default(now())
+
+  @@index([loanId])
+}
+
+// Single-row table holding org-wide defaults, editable by admins from the Settings page.
+model Settings {
+  id                Int    @id @default(1)
+  businessName      String @default("My Lending Business")
+  defaultRate       Float  @default(0.30)
+  defaultPeriodDays Int    @default(30)
+}

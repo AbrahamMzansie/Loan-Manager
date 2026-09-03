@@ -1,0 +1,21 @@
+version: "3.8"
+
+# Quick local setup: just the database. Run the server and client with
+# `npm run dev` in their own folders (see README) so you get hot-reload
+# during development. For a "real" deployment, see the README's deployment
+# section — Postgres would normally be a managed database instead.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: loanmanager
+      POSTGRES_PASSWORD: loanmanager
+      POSTGRES_DB: loanmanager
+    ports:
+      - "5432:5432"
+    volumes:
+      - loanmanager_pgdata:/var/lib/postgresql/data
+
+volumes:
+  loanmanager_pgdata:
