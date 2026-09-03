@@ -16,8 +16,9 @@ services:
       - key: ALLOW_FIRST_ADMIN_SETUP
         value: false
 
-staticSites:
-  - name: loan-manager-client
+  - type: web
+    name: loan-manager-client
+    runtime: static
     rootDir: client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
