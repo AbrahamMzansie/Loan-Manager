@@ -38,7 +38,7 @@ export default function Loans() {
 
       <table className="table">
         <thead>
-          <tr><th>Customer</th><th>Started</th><th>Principal</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
+          <tr><th>Customer</th><th>Started</th><th>Principal</th><th>Interest</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
         </thead>
         <tbody>
           {loans.map((loan) => (
@@ -46,13 +46,14 @@ export default function Loans() {
               <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
               <td>{new Date(loan.startDate).toLocaleDateString()}</td>
               <td>{money(loan.principal)}</td>
+              <td>{money(loan.balanceInfo.grossDue - loan.principal)}</td>
               <td>{money(loan.balanceInfo.balance)}</td>
               <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
               <td><LoanStatusBadge loan={loan} /></td>
               <td><Link to={`/loans/${loan.id}`}>Open</Link></td>
             </tr>
           ))}
-          {loans.length === 0 && <tr><td colSpan={7} className="muted">No loans found.</td></tr>}
+          {loans.length === 0 && <tr><td colSpan={8} className="muted">No loans found.</td></tr>}
         </tbody>
       </table>
     </div>
