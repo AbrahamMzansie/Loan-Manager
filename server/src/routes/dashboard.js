@@ -2,13 +2,14 @@ const express = require("express");
 const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
 const { computeLoanBalance } = require("../utils/interest");
+const { ownerScope } = require("../utils/scope");
 
 const router = express.Router();
 router.use(requireAuth);
 
 router.get("/", async (req, res) => {
   const loans = await prisma.loan.findMany({
-    where: { status: { not: "written_off" } },
+    where: { status: { not: "written_off" }, customer: ownerScope(req) },
     include: { customer: true, payments: true },
   });
 
@@ -24,7 +25,7 @@ router.get("/", async (req, res) => {
 
   const totalOutstanding = active.reduce((sum, l) => sum + l.balanceInfo.balance, 0);
   const totalPrincipalOut = active.reduce((sum, l) => sum + l.principal, 0);
-  const customerCount = await prisma.customer.count();
+  const customerCount = await prisma.customer.count({ where: ownerScope(req) });
 
   res.json({
     stats: {

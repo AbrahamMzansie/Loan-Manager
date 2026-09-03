@@ -24,6 +24,7 @@ model Customer {
   address   String?
   idNumber  String?
   notes     String?
+  createdBy Int?
   createdAt DateTime @default(now())
   loans     Loan[]
 }
