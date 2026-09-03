@@ -119,24 +119,26 @@ export default function CustomerDetail() {
         </form>
       )}
 
-      <table className="table">
-        <thead>
-          <tr><th>Started</th><th>Principal</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
-        </thead>
-        <tbody>
-          {customer.loans.map((loan) => (
-            <tr key={loan.id}>
-              <td>{new Date(loan.startDate).toLocaleDateString()}</td>
-              <td>{money(loan.principal)}</td>
-              <td>{money(loan.balanceInfo.balance)}</td>
-              <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
-              <td><LoanStatusBadge loan={loan} /></td>
-              <td><Link to={`/loans/${loan.id}`}>Open</Link></td>
-            </tr>
-          ))}
-          {customer.loans.length === 0 && <tr><td colSpan={6} className="muted">No loans yet.</td></tr>}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
+            <tr><th>Started</th><th>Principal</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {customer.loans.map((loan) => (
+              <tr key={loan.id}>
+                <td>{new Date(loan.startDate).toLocaleDateString()}</td>
+                <td>{money(loan.principal)}</td>
+                <td>{money(loan.balanceInfo.balance)}</td>
+                <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
+                <td><LoanStatusBadge loan={loan} /></td>
+                <td><Link to={`/loans/${loan.id}`}>Open</Link></td>
+              </tr>
+            ))}
+            {customer.loans.length === 0 && <tr><td colSpan={6} className="muted">No loans yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

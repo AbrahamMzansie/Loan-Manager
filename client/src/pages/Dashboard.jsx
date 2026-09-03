@@ -47,27 +47,29 @@ export default function Dashboard() {
         {overdue.length === 0 ? (
           <p className="muted">Nothing overdue right now.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr><th>Customer</th><th>Principal</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
-            </thead>
-            <tbody>
-              {overdue.map((loan) => (
-                <tr key={loan.id}>
-                  <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
-                  <td>{money(loan.principal)}</td>
-                  <td>{money(loan.balanceInfo.balance)}</td>
-                  <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
-                  <td><LoanStatusBadge loan={loan} /></td>
-                  <td>
-                    <Link to={`/loans/${loan.id}/invoice`}>View invoice</Link>
-                    {" · "}
-                    <Link to={`/loans/${loan.id}`}>Open</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>Customer</th><th>Principal</th><th>Balance due</th><th>Due date</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                {overdue.map((loan) => (
+                  <tr key={loan.id}>
+                    <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
+                    <td>{money(loan.principal)}</td>
+                    <td>{money(loan.balanceInfo.balance)}</td>
+                    <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
+                    <td><LoanStatusBadge loan={loan} /></td>
+                    <td>
+                      <Link to={`/loans/${loan.id}/invoice`}>View invoice</Link>
+                      {" · "}
+                      <Link to={`/loans/${loan.id}`}>Open</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
@@ -76,21 +78,23 @@ export default function Dashboard() {
         {dueSoon.length === 0 ? (
           <p className="muted">Nothing due soon.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr><th>Customer</th><th>Balance due</th><th>Due date</th><th></th></tr>
-            </thead>
-            <tbody>
-              {dueSoon.map((loan) => (
-                <tr key={loan.id}>
-                  <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
-                  <td>{money(loan.balanceInfo.balance)}</td>
-                  <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
-                  <td><Link to={`/loans/${loan.id}`}>Open</Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr><th>Customer</th><th>Balance due</th><th>Due date</th><th></th></tr>
+              </thead>
+              <tbody>
+                {dueSoon.map((loan) => (
+                  <tr key={loan.id}>
+                    <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
+                    <td>{money(loan.balanceInfo.balance)}</td>
+                    <td>{new Date(loan.balanceInfo.dueDate).toLocaleDateString()}</td>
+                    <td><Link to={`/loans/${loan.id}`}>Open</Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

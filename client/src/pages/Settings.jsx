@@ -124,14 +124,16 @@ export default function Settings({ user }) {
           </form>
 
           <h2>Staff accounts</h2>
-          <table className="table">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}><td>{u.name}</td><td>{u.email}</td><td>{u.role}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="table">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}><td>{u.name}</td><td>{u.email}</td><td>{u.role}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <form className="card form-grid" onSubmit={addUser}>
             <div><label>Name</label><input required value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></div>

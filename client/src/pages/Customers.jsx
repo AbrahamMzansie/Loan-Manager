@@ -86,24 +86,26 @@ export default function Customers() {
         <button type="submit">Search</button>
       </form>
 
-      <table className="table">
-        <thead>
-          <tr><th>Name</th><th>Phone</th><th>Outstanding balance</th><th>Loans</th></tr>
-        </thead>
-        <tbody>
-          {customers.map((c) => (
-            <tr key={c.id}>
-              <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
-              <td>{c.phone || "—"}</td>
-              <td>{money(c.outstanding)}</td>
-              <td>{c.loans.length}</td>
-            </tr>
-          ))}
-          {customers.length === 0 && (
-            <tr><td colSpan={4} className="muted">No customers yet.</td></tr>
-          )}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Outstanding balance</th><th>Loans</th></tr>
+          </thead>
+          <tbody>
+            {customers.map((c) => (
+              <tr key={c.id}>
+                <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
+                <td>{c.phone || "—"}</td>
+                <td>{money(c.outstanding)}</td>
+                <td>{c.loans.length}</td>
+              </tr>
+            ))}
+            {customers.length === 0 && (
+              <tr><td colSpan={4} className="muted">No customers yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -106,19 +106,21 @@ export default function LoanDetail() {
       )}
 
       <h2>Payment history</h2>
-      <table className="table">
-        <thead><tr><th>Date</th><th>Amount</th><th>Method</th></tr></thead>
-        <tbody>
-          {loan.payments.map((p) => (
-            <tr key={p.id}>
-              <td>{new Date(p.date).toLocaleDateString()}</td>
-              <td>{money(p.amount)}</td>
-              <td>{p.method || "—"}</td>
-            </tr>
-          ))}
-          {loan.payments.length === 0 && <tr><td colSpan={3} className="muted">No payments recorded yet.</td></tr>}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table className="table">
+          <thead><tr><th>Date</th><th>Amount</th><th>Method</th></tr></thead>
+          <tbody>
+            {loan.payments.map((p) => (
+              <tr key={p.id}>
+                <td>{new Date(p.date).toLocaleDateString()}</td>
+                <td>{money(p.amount)}</td>
+                <td>{p.method || "—"}</td>
+              </tr>
+            ))}
+            {loan.payments.length === 0 && <tr><td colSpan={3} className="muted">No payments recorded yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
