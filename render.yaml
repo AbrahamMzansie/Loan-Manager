@@ -12,7 +12,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://loan-manager-client.onrender.com
+        value: https://loan-manager-client-vqvb.onrender.com
       - key: ALLOW_FIRST_ADMIN_SETUP
         value: false
 
@@ -24,7 +24,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://loan-manager-api.onrender.com/api
+        value: https://loan-manager-api-wtwm.onrender.com/api
     routes:
       - type: rewrite
         source: /*
