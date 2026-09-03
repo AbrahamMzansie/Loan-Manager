@@ -68,6 +68,7 @@ export default function LoanDetail() {
       <div className="stat-grid">
         <div className="stat-card"><div className="stat-value">{money(loan.principal)}</div><div className="stat-label">Principal</div></div>
         <div className="stat-card"><div className="stat-value">{(loan.interestRate * 100).toFixed(0)}%</div><div className="stat-label">Interest per {loan.periodDays}-day period</div></div>
+        <div className="stat-card"><div className="stat-value">{money(balanceInfo.grossDue - loan.principal)}</div><div className="stat-label">Interest amount so far</div></div>
         <div className="stat-card"><div className="stat-value">{money(balanceInfo.grossDue)}</div><div className="stat-label">Total due (with interest so far)</div></div>
         <div className="stat-card stat-danger"><div className="stat-value">{money(balanceInfo.balance)}</div><div className="stat-label">Outstanding balance</div></div>
       </div>
