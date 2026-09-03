@@ -31,7 +31,7 @@ export default function App() {
   }
 
   return (
-    <Layout user={user}>
+    <Layout user={user} onLogout={() => setUser(null)}>
       <Routes>
         <Route path="/" element={<PrivateRoute user={user}><Dashboard /></PrivateRoute>} />
         <Route path="/customers" element={<PrivateRoute user={user}><Customers /></PrivateRoute>} />

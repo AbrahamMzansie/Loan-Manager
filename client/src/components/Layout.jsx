@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { setToken, setStoredUser } from "../api";
 import { onQueueChange, queueCount } from "../offline/sync";
 
-export default function Layout({ user, children }) {
+export default function Layout({ user, onLogout, children }) {
   const navigate = useNavigate();
   const [online, setOnline] = useState(navigator.onLine);
   const [pending, setPending] = useState(0);
@@ -27,6 +27,7 @@ export default function Layout({ user, children }) {
   function logout() {
     setToken(null);
     setStoredUser(null);
+    onLogout();
     navigate("/login");
   }
 
