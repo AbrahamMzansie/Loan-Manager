@@ -89,6 +89,7 @@ export const api = {
   updateLoan: (id, data) => apiFetch(`/loans/${id}`, { method: "PUT", body: data }),
   recordPayment: (loanId, data) => apiFetch(`/loans/${loanId}/payments`, { method: "POST", body: data }),
   markPaid: (loanId) => apiFetch(`/loans/${loanId}/mark-paid`, { method: "POST" }),
+  deleteLoan: (id) => apiFetch(`/loans/${id}`, { method: "DELETE" }),
 
   dashboard: () => apiFetch("/dashboard"),
 

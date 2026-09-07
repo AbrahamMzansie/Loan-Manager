@@ -136,6 +136,20 @@ router.post("/:id/mark-paid", async (req, res) => {
   res.json(loan);
 });
 
+router.delete("/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const existing = await prisma.loan.findFirst({ where: { id, customer: ownerScope(req) } });
+  if (!existing) return res.status(404).json({ error: "Loan not found" });
+
+  const paymentCount = await prisma.payment.count({ where: { loanId: id } });
+  if (paymentCount > 0) {
+    return res.status(400).json({ error: "Cannot delete a loan that has payment history. Consider marking it written off instead." });
+  }
+
+  await prisma.loan.delete({ where: { id } });
+  res.status(204).end();
+});
+
 router.delete("/:id/payments/:paymentId", async (req, res) => {
   const paymentId = Number(req.params.paymentId);
   const existing = await prisma.payment.findFirst({

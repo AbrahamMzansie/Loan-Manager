@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
@@ -10,12 +10,14 @@ function money(n) {
 
 export default function LoanDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [loan, setLoan] = useState(null);
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("cash");
   const [error, setError] = useState("");
   const [recording, setRecording] = useState(false);
   const [markingPaid, setMarkingPaid] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const toast = useToast();
 
   function load() {
@@ -61,6 +63,21 @@ export default function LoanDetail() {
     }
   }
 
+  async function deleteLoan() {
+    if (deleting) return;
+    if (!confirm("Delete this loan? This cannot be undone.")) return;
+    setError("");
+    setDeleting(true);
+    try {
+      await api.deleteLoan(id);
+      toast("Loan deleted.");
+      navigate(`/customers/${loan.customerId}`);
+    } catch (err) {
+      setError(err.message);
+      setDeleting(false);
+    }
+  }
+
   if (error && !loan) return <div className="error-box">{error}</div>;
   if (!loan) return <p>Loading...</p>;
 
@@ -71,7 +88,14 @@ export default function LoanDetail() {
       <p><Link to={`/customers/${loan.customerId}`}>&larr; {loan.customer.name}</Link></p>
       <div className="page-header">
         <h1>Loan #{loan.id}</h1>
-        <LoanStatusBadge loan={loan} />
+        <div>
+          <LoanStatusBadge loan={loan} />{" "}
+          {loan.payments.length === 0 && (
+            <button className="btn-danger" onClick={deleteLoan} disabled={deleting}>
+              {deleting && <span className="btn-spinner" />}{deleting ? "Deleting..." : "Delete loan"}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="error-box">{error}</div>}
