@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useToast } from "../components/Toast";
+import PageLoader from "../components/PageLoader";
 
 export default function Settings({ user }) {
   const [settings, setSettings] = useState(null);
@@ -80,7 +81,7 @@ export default function Settings({ user }) {
     }
   }
 
-  if (!settings) return <p>Loading...</p>;
+  if (!settings) return <PageLoader />;
 
   return (
     <div>

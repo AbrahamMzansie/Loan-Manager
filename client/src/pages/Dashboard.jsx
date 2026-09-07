@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
+import PageLoader from "../components/PageLoader";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -16,7 +17,7 @@ export default function Dashboard() {
   }, []);
 
   if (error) return <div className="error-box">{error}. If you're offline, this page needs to have loaded at least once before to show cached data.</div>;
-  if (!data) return <p>Loading...</p>;
+  if (!data) return <PageLoader />;
 
   const { stats, overdue, dueSoon } = data;
 

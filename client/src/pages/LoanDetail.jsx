@@ -4,6 +4,7 @@ import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
 import { useConfirm } from "../components/Confirm";
+import PageLoader from "../components/PageLoader";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -81,7 +82,7 @@ export default function LoanDetail() {
   }
 
   if (error && !loan) return <div className="error-box">{error}</div>;
-  if (!loan) return <p>Loading...</p>;
+  if (!loan) return <PageLoader />;
 
   const { balanceInfo } = loan;
 

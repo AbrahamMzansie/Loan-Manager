@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useToast } from "../components/Toast";
+import PageLoader from "../components/PageLoader";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -15,10 +16,12 @@ export default function Customers() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [duplicates, setDuplicates] = useState(null);
+  const [loading, setLoading] = useState(true);
   const toast = useToast();
 
   function load(q) {
-    api.listCustomers(q).then(setCustomers).catch((e) => setError(e.message));
+    setLoading(true);
+    api.listCustomers(q).then(setCustomers).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }
 
   useEffect(() => { load(); }, []);
@@ -140,26 +143,30 @@ export default function Customers() {
         <button type="submit">Search</button>
       </form>
 
-      <div className="table-wrap">
-        <table className="table">
-          <thead>
-            <tr><th>Name</th><th>Phone</th><th>Outstanding balance</th><th>Loans</th></tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c.id}>
-                <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
-                <td>{c.phone || "—"}</td>
-                <td>{money(c.outstanding)}</td>
-                <td>{c.loans.length}</td>
-              </tr>
-            ))}
-            {customers.length === 0 && (
-              <tr><td colSpan={4} className="muted">No customers yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <PageLoader />
+      ) : (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr><th>Name</th><th>Phone</th><th>Outstanding balance</th><th>Loans</th></tr>
+            </thead>
+            <tbody>
+              {customers.map((c) => (
+                <tr key={c.id}>
+                  <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
+                  <td>{c.phone || "—"}</td>
+                  <td>{money(c.outstanding)}</td>
+                  <td>{c.loans.length}</td>
+                </tr>
+              ))}
+              {customers.length === 0 && (
+                <tr><td colSpan={4} className="muted">No customers yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

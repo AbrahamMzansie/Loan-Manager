@@ -4,6 +4,7 @@ import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
 import { useConfirm } from "../components/Confirm";
+import PageLoader from "../components/PageLoader";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -93,7 +94,7 @@ export default function CustomerDetail() {
   }
 
   if (error && !customer) return <div className="error-box">{error}</div>;
-  if (!customer) return <p>Loading...</p>;
+  if (!customer) return <PageLoader />;
 
   return (
     <div>

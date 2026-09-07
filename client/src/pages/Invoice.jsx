@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api";
+import PageLoader from "../components/PageLoader";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -19,7 +20,7 @@ export default function Invoice() {
   }, [id]);
 
   if (error) return <div className="error-box">{error}</div>;
-  if (!loan || !settings) return <p>Loading...</p>;
+  if (!loan || !settings) return <PageLoader />;
 
   const { balanceInfo } = loan;
 
