@@ -25,6 +25,7 @@ router.get("/", async (req, res) => {
 
   const totalOutstanding = active.reduce((sum, l) => sum + l.balanceInfo.balance, 0);
   const totalPrincipalOut = active.reduce((sum, l) => sum + l.principal, 0);
+  const totalInterest = active.reduce((sum, l) => sum + (l.balanceInfo.grossDue - l.principal), 0);
   const customerCount = await prisma.customer.count({ where: ownerScope(req) });
 
   res.json({
@@ -33,6 +34,7 @@ router.get("/", async (req, res) => {
       overdueLoans: overdue.length,
       totalOutstanding: Math.round(totalOutstanding * 100) / 100,
       totalPrincipalOut: Math.round(totalPrincipalOut * 100) / 100,
+      totalInterest: Math.round(totalInterest * 100) / 100,
       customerCount,
     },
     overdue: overdue.sort((a, b) => b.balanceInfo.monthsOverdue - a.balanceInfo.monthsOverdue),

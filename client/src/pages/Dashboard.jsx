@@ -33,6 +33,14 @@ export default function Dashboard() {
           <div className="stat-label">Overdue loans</div>
         </div>
         <div className="stat-card">
+          <div className="stat-value">{money(stats.totalPrincipalOut)}</div>
+          <div className="stat-label">Principal out</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{money(stats.totalInterest)}</div>
+          <div className="stat-label">Interest accrued</div>
+        </div>
+        <div className="stat-card">
           <div className="stat-value">{money(stats.totalOutstanding)}</div>
           <div className="stat-label">Total outstanding (incl. interest)</div>
         </div>
