@@ -97,7 +97,8 @@ a { color: var(--green); }
 
 .content { flex: 1; padding: 24px 32px; max-width: 1100px; }
 
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+.btn-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0 28px; }
 .stat-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }

@@ -117,9 +117,9 @@ export default function LoanDetail() {
       <p><Link to={`/customers/${loan.customerId}`}>&larr; {loan.customer.name}</Link></p>
       <div className="page-header">
         <h1>Loan #{loan.id}</h1>
-        <div>
-          <LoanStatusBadge loan={loan} />{" "}
-          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>{" "}
+        <div className="btn-row">
+          <LoanStatusBadge loan={loan} />
+          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>
           {loan.payments.length === 0 && (
             <button className="btn-danger" onClick={deleteLoan} disabled={deleting}>
               {deleting && <span className="btn-spinner" />}{deleting ? "Deleting..." : "Delete loan"}

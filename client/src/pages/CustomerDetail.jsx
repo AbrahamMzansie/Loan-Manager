@@ -129,8 +129,8 @@ export default function CustomerDetail() {
       <p><Link to="/customers">&larr; All customers</Link></p>
       <div className="page-header">
         <h1>{customer.name}</h1>
-        <div>
-          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>{" "}
+        <div className="btn-row">
+          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>
           <button className="btn-danger" onClick={deleteCustomer} disabled={deleting}>
             {deleting && <span className="btn-spinner" />}{deleting ? "Deleting..." : "Delete"}
           </button>
