@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
+import { useConfirm } from "../components/Confirm";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -21,6 +22,7 @@ export default function CustomerDetail() {
   const [deleting, setDeleting] = useState(false);
   const [addingLoan, setAddingLoan] = useState(false);
   const toast = useToast();
+  const confirmDialog = useConfirm();
 
   function load() {
     api.getCustomer(id).then((c) => { setCustomer(c); setForm(c); }).catch((e) => setError(e.message));
@@ -77,7 +79,7 @@ export default function CustomerDetail() {
 
   async function deleteCustomer() {
     if (deleting) return;
-    if (!confirm("Delete this customer? This only works if they have no loan history.")) return;
+    if (!(await confirmDialog("Delete this customer? This only works if they have no loan history."))) return;
     setError("");
     setDeleting(true);
     try {

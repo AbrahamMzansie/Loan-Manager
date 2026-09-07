@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
+import { useConfirm } from "../components/Confirm";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -19,6 +20,7 @@ export default function LoanDetail() {
   const [markingPaid, setMarkingPaid] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const toast = useToast();
+  const confirmDialog = useConfirm();
 
   function load() {
     api.getLoan(id).then(setLoan).catch((e) => setError(e.message));
@@ -49,7 +51,7 @@ export default function LoanDetail() {
 
   async function markPaid() {
     if (recording || markingPaid) return;
-    if (!confirm("Mark this loan as fully paid without recording an exact payment amount?")) return;
+    if (!(await confirmDialog("Mark this loan as fully paid without recording an exact payment amount?"))) return;
     setError("");
     setMarkingPaid(true);
     try {
@@ -65,7 +67,7 @@ export default function LoanDetail() {
 
   async function deleteLoan() {
     if (deleting) return;
-    if (!confirm("Delete this loan? This cannot be undone.")) return;
+    if (!(await confirmDialog("Delete this loan? This cannot be undone."))) return;
     setError("");
     setDeleting(true);
     try {

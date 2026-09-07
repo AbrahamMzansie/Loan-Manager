@@ -44,7 +44,7 @@ export default function Loans() {
           <tbody>
             {loans.map((loan) => (
               <tr key={loan.id}>
-                <td><Link to={`/customers/${loan.customerId}`}>{loan.customer.name}</Link></td>
+                <td><Link to={`/loans/${loan.id}`}>{loan.customer.name}</Link></td>
                 <td>{new Date(loan.startDate).toLocaleDateString()}</td>
                 <td>{money(loan.principal)}</td>
                 <td>{money(loan.balanceInfo.grossDue - loan.principal)}</td>
