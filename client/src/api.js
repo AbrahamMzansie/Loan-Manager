@@ -22,9 +22,10 @@ export function setStoredUser(user) {
 }
 
 class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, data) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -55,7 +56,7 @@ export async function apiFetch(path, { method = "GET", body, auth = true } = {})
     }
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new ApiError(data.error || `Request failed (${res.status})`, res.status);
+      throw new ApiError(data.error || `Request failed (${res.status})`, res.status, data);
     }
     if (res.status === 204) return null;
     return res.json();

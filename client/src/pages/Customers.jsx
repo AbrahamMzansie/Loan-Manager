@@ -14,6 +14,7 @@ export default function Customers() {
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", idNumber: "", notes: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [duplicates, setDuplicates] = useState(null);
   const toast = useToast();
 
   function load(q) {
@@ -31,22 +32,46 @@ export default function Customers() {
     e.preventDefault();
     if (submitting) return;
     setError("");
+    setDuplicates(null);
     setSubmitting(true);
     try {
       const res = await api.createCustomer(form);
-      setForm({ name: "", phone: "", email: "", address: "", idNumber: "", notes: "" });
-      setShowForm(false);
-      if (res.queued) {
-        toast("Offline — customer queued, will sync once back online.", "info");
+      finishAdd(res);
+    } catch (err) {
+      if (err.status === 409 && err.data?.duplicates?.length) {
+        setDuplicates(err.data.duplicates);
       } else {
-        toast("Customer added.");
+        setError(err.message);
       }
-      load(search);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function saveAnyway() {
+    if (submitting) return;
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await api.createCustomer({ ...form, force: true });
+      setDuplicates(null);
+      finishAdd(res);
     } catch (err) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function finishAdd(res) {
+    setForm({ name: "", phone: "", email: "", address: "", idNumber: "", notes: "" });
+    setShowForm(false);
+    if (res.queued) {
+      toast("Offline — customer queued, will sync once back online.", "info");
+    } else {
+      toast("Customer added.");
+    }
+    load(search);
   }
 
   return (
@@ -57,6 +82,26 @@ export default function Customers() {
       </div>
 
       {error && <div className="error-box">{error}</div>}
+
+      {duplicates && (
+        <div className="card" style={{ borderColor: "var(--amber)" }}>
+          <p><strong>This looks like it might already be an existing customer:</strong></p>
+          <ul>
+            {duplicates.map((d) => (
+              <li key={d.customer.id}>
+                <Link to={`/customers/${d.customer.id}`}>{d.customer.name}</Link>
+                {d.customer.phone && ` — ${d.customer.phone}`}
+                {d.customer.idNumber && ` — ID ${d.customer.idNumber}`}
+                {" "}<span className="muted small">({d.reasons.join(", ")})</span>
+              </li>
+            ))}
+          </ul>
+          <button onClick={saveAnyway} disabled={submitting}>
+            {submitting && <span className="btn-spinner" />}{submitting ? "Saving..." : "Save anyway, it's a different person"}
+          </button>{" "}
+          <button type="button" className="btn-secondary" onClick={() => setDuplicates(null)} disabled={submitting}>Cancel</button>
+        </div>
+      )}
 
       {showForm && (
         <form className="card form-grid" onSubmit={addCustomer}>

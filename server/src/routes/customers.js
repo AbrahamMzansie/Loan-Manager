@@ -3,6 +3,7 @@ const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
 const { computeLoanBalance } = require("../utils/interest");
 const { ownerScope } = require("../utils/scope");
+const { findDuplicates } = require("../utils/duplicates");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -49,8 +50,19 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { name, phone, email, address, idNumber, notes } = req.body;
+  const { name, phone, email, address, idNumber, notes, force } = req.body;
   if (!name) return res.status(400).json({ error: "Customer name is required" });
+
+  if (!force) {
+    const existingCustomers = await prisma.customer.findMany({ where: ownerScope(req) });
+    const duplicates = findDuplicates({ name, phone, email, idNumber, address }, existingCustomers);
+    if (duplicates.length > 0) {
+      return res.status(409).json({
+        error: "This looks like it might already be an existing customer.",
+        duplicates,
+      });
+    }
+  }
 
   const customer = await prisma.customer.create({
     data: { name, phone, email, address, idNumber, notes, createdBy: req.user.id },
