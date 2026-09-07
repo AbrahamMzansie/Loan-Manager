@@ -119,10 +119,10 @@ a { color: var(--green); }
 .chip-active { background: var(--green); color: white; border-color: var(--green); }
 
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
-.table-wrap table.table { min-width: 600px; }
 table.table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
 .table th, .table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
 .table-wrap .table th, .table-wrap .table td { white-space: nowrap; }
+.col-tight { width: 1%; }
 .table th { background: #fafafa; font-weight: 600; color: #444; }
 .total-row td { border-top: 2px solid #333; }
 

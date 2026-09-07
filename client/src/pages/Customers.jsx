@@ -149,13 +149,13 @@ export default function Customers() {
         <div className="table-wrap">
           <table className="table">
             <thead>
-              <tr><th>Name</th><th>Loans</th><th>Outstanding balance</th><th>Phone</th></tr>
+              <tr><th>Name</th><th className="col-tight">Loans</th><th>Outstanding balance</th><th>Phone</th></tr>
             </thead>
             <tbody>
               {customers.map((c) => (
                 <tr key={c.id}>
                   <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
-                  <td>{c.loans.length}</td>
+                  <td className="col-tight">{c.loans.length}</td>
                   <td>{money(c.outstanding)}</td>
                   <td>{c.phone || "—"}</td>
                 </tr>
