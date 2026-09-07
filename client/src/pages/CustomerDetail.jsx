@@ -10,6 +10,16 @@ function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// Mirrors server/src/utils/dueDateRule.js: a loan started on the 5th-25th is
+// automatically due on the 5th of next month; 26th-4th needs a manual date.
+function isAutoWindow(startDate) {
+  const day = startDate.getDate();
+  return day >= 5 && day <= 25;
+}
+function autoDueDate(startDate) {
+  return new Date(startDate.getFullYear(), startDate.getMonth() + 1, 5);
+}
+
 export default function CustomerDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +27,7 @@ export default function CustomerDetail() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
   const [showLoanForm, setShowLoanForm] = useState(false);
-  const [loanForm, setLoanForm] = useState({ principal: "", interestRate: "", periodDays: "", startDate: "", notes: "" });
+  const [loanForm, setLoanForm] = useState({ principal: "", interestRate: "", startDate: "", dueDate: "", notes: "" });
   const [error, setError] = useState("");
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -58,12 +68,12 @@ export default function CustomerDetail() {
         customerId: Number(id),
         principal: Number(loanForm.principal),
         interestRate: loanForm.interestRate ? Number(loanForm.interestRate) / 100 : undefined,
-        periodDays: loanForm.periodDays ? Number(loanForm.periodDays) : undefined,
         startDate: loanForm.startDate || undefined,
+        dueDate: loanForm.dueDate || undefined,
         notes: loanForm.notes,
       };
       const res = await api.createLoan(payload);
-      setLoanForm({ principal: "", interestRate: "", periodDays: "", startDate: "", notes: "" });
+      setLoanForm({ principal: "", interestRate: "", startDate: "", dueDate: "", notes: "" });
       setShowLoanForm(false);
       if (res.queued) {
         toast("Offline — loan queued, will sync once back online.", "info");
@@ -138,18 +148,41 @@ export default function CustomerDetail() {
         <button onClick={() => setShowLoanForm((s) => !s)}>{showLoanForm ? "Cancel" : "+ New loan"}</button>
       </div>
 
-      {showLoanForm && (
-        <form className="card form-grid" onSubmit={addLoan}>
-          <div><label>Principal (R) *</label><input required type="number" min="1" step="0.01" value={loanForm.principal} onChange={(e) => setLoanForm({ ...loanForm, principal: e.target.value })} /></div>
-          <div><label>Interest rate % (blank = default)</label><input type="number" step="0.1" value={loanForm.interestRate} onChange={(e) => setLoanForm({ ...loanForm, interestRate: e.target.value })} placeholder="30" /></div>
-          <div><label>Period days (blank = default)</label><input type="number" value={loanForm.periodDays} onChange={(e) => setLoanForm({ ...loanForm, periodDays: e.target.value })} placeholder="30" /></div>
-          <div><label>Start date (blank = today)</label><input type="date" value={loanForm.startDate} onChange={(e) => setLoanForm({ ...loanForm, startDate: e.target.value })} /></div>
-          <div className="span-2"><label>Notes</label><input value={loanForm.notes} onChange={(e) => setLoanForm({ ...loanForm, notes: e.target.value })} /></div>
-          <div className="span-2">
-            <button type="submit" disabled={addingLoan}>{addingLoan && <span className="btn-spinner" />}{addingLoan ? "Creating..." : "Create loan"}</button>
-          </div>
-        </form>
-      )}
+      {showLoanForm && (() => {
+        const effectiveStart = loanForm.startDate ? new Date(loanForm.startDate) : new Date();
+        const auto = isAutoWindow(effectiveStart);
+        return (
+          <form className="card form-grid" onSubmit={addLoan}>
+            <div><label>Principal (R) *</label><input required type="number" min="1" step="0.01" value={loanForm.principal} onChange={(e) => setLoanForm({ ...loanForm, principal: e.target.value })} /></div>
+            <div><label>Interest rate % (blank = default)</label><input type="number" step="0.1" value={loanForm.interestRate} onChange={(e) => setLoanForm({ ...loanForm, interestRate: e.target.value })} placeholder="30" /></div>
+            <div><label>Start date (blank = today)</label><input type="date" value={loanForm.startDate} onChange={(e) => setLoanForm({ ...loanForm, startDate: e.target.value })} /></div>
+            <div>
+              {auto ? (
+                <>
+                  <label>Due date</label>
+                  <p className="muted small" style={{ marginTop: 4 }}>
+                    {autoDueDate(effectiveStart).toLocaleDateString()} — automatic (started 5th-25th)
+                  </p>
+                </>
+              ) : (
+                <>
+                  <label>Due date * (manual — started 26th-4th)</label>
+                  <input
+                    required
+                    type="date"
+                    value={loanForm.dueDate}
+                    onChange={(e) => setLoanForm({ ...loanForm, dueDate: e.target.value })}
+                  />
+                </>
+              )}
+            </div>
+            <div className="span-2"><label>Notes</label><input value={loanForm.notes} onChange={(e) => setLoanForm({ ...loanForm, notes: e.target.value })} /></div>
+            <div className="span-2">
+              <button type="submit" disabled={addingLoan}>{addingLoan && <span className="btn-spinner" />}{addingLoan ? "Creating..." : "Create loan"}</button>
+            </div>
+          </form>
+        );
+      })()}
 
       <div className="table-wrap">
         <table className="table">

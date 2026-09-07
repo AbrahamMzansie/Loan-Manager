@@ -3,6 +3,7 @@ const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
 const { computeLoanBalance } = require("../utils/interest");
 const { ownerScope } = require("../utils/scope");
+const { isAutoWindow, autoDueDate } = require("../utils/dueDateRule");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -47,7 +48,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { customerId, principal, interestRate, periodDays, startDate, notes } = req.body;
+  const { customerId, principal, interestRate, startDate, dueDate, notes } = req.body;
   if (!customerId || !principal || principal <= 0) {
     return res.status(400).json({ error: "customerId and a positive principal are required" });
   }
@@ -55,14 +56,32 @@ router.post("/", async (req, res) => {
   const customer = await prisma.customer.findFirst({ where: { id: Number(customerId), ...ownerScope(req) } });
   if (!customer) return res.status(404).json({ error: "Customer not found" });
 
+  const start = startDate ? new Date(startDate) : new Date();
+
+  let resolvedDueDate;
+  if (isAutoWindow(start)) {
+    resolvedDueDate = autoDueDate(start);
+  } else {
+    if (!dueDate) {
+      return res.status(400).json({
+        error: "A loan started on the 26th-4th needs its due date entered manually.",
+      });
+    }
+    resolvedDueDate = new Date(dueDate);
+    if (resolvedDueDate <= start) {
+      return res.status(400).json({ error: "Due date must be after the start date." });
+    }
+  }
+  const periodDays = Math.round((resolvedDueDate.getTime() - start.getTime()) / 86400000);
+
   const defaults = await getDefaults(req.user.id);
   const loan = await prisma.loan.create({
     data: {
       customerId: Number(customerId),
       principal: Number(principal),
       interestRate: interestRate != null ? Number(interestRate) : defaults.interestRate,
-      periodDays: periodDays != null ? Number(periodDays) : defaults.periodDays,
-      startDate: startDate ? new Date(startDate) : new Date(),
+      periodDays,
+      startDate: start,
       notes,
       createdBy: req.user.id,
     },
