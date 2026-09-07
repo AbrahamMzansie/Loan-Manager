@@ -20,14 +20,40 @@ export default function LoanDetail() {
   const [recording, setRecording] = useState(false);
   const [markingPaid, setMarkingPaid] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ periodDays: "", notes: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
   const toast = useToast();
   const confirmDialog = useConfirm();
 
   function load() {
-    api.getLoan(id).then(setLoan).catch((e) => setError(e.message));
+    api.getLoan(id).then((l) => {
+      setLoan(l);
+      setEditForm({ periodDays: l.periodDays, notes: l.notes || "" });
+    }).catch((e) => setError(e.message));
   }
 
   useEffect(() => { load(); }, [id]);
+
+  async function saveEdit(e) {
+    e.preventDefault();
+    if (savingEdit) return;
+    setError("");
+    setSavingEdit(true);
+    try {
+      await api.updateLoan(id, {
+        periodDays: Number(editForm.periodDays),
+        notes: editForm.notes,
+      });
+      toast("Loan updated.");
+      setEditing(false);
+      load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   async function recordPayment(e) {
     e.preventDefault();
@@ -93,6 +119,7 @@ export default function LoanDetail() {
         <h1>Loan #{loan.id}</h1>
         <div>
           <LoanStatusBadge loan={loan} />{" "}
+          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>{" "}
           {loan.payments.length === 0 && (
             <button className="btn-danger" onClick={deleteLoan} disabled={deleting}>
               {deleting && <span className="btn-spinner" />}{deleting ? "Deleting..." : "Delete loan"}
@@ -102,6 +129,34 @@ export default function LoanDetail() {
       </div>
 
       {error && <div className="error-box">{error}</div>}
+
+      {editing && (
+        <form className="card form-grid" onSubmit={saveEdit}>
+          <div>
+            <label>Period length (days)</label>
+            <input
+              type="number"
+              min="1"
+              required
+              value={editForm.periodDays}
+              onChange={(e) => setEditForm({ ...editForm, periodDays: e.target.value })}
+            />
+            {editForm.periodDays && (
+              <p className="muted small">
+                New due date:{" "}
+                {new Date(new Date(loan.startDate).getTime() + Number(editForm.periodDays) * 86400000).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <div className="span-2">
+            <label>Notes</label>
+            <textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} />
+          </div>
+          <div className="span-2">
+            <button type="submit" disabled={savingEdit}>{savingEdit && <span className="btn-spinner" />}{savingEdit ? "Saving..." : "Save changes"}</button>
+          </div>
+        </form>
+      )}
 
       <div className="stat-grid">
         <div className="stat-card"><div className="stat-value">{money(loan.principal)}</div><div className="stat-label">Principal</div></div>
