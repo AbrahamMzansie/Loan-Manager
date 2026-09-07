@@ -59,18 +59,17 @@ router.post("/", async (req, res) => {
   const start = startDate ? new Date(startDate) : new Date();
 
   let resolvedDueDate;
-  if (isAutoWindow(start)) {
+  if (dueDate) {
+    resolvedDueDate = new Date(dueDate);
+  } else if (isAutoWindow(start)) {
     resolvedDueDate = autoDueDate(start);
   } else {
-    if (!dueDate) {
-      return res.status(400).json({
-        error: "A loan started on the 26th-4th needs its due date entered manually.",
-      });
-    }
-    resolvedDueDate = new Date(dueDate);
-    if (resolvedDueDate <= start) {
-      return res.status(400).json({ error: "Due date must be after the start date." });
-    }
+    return res.status(400).json({
+      error: "A loan started on the 26th-4th needs its due date entered manually.",
+    });
+  }
+  if (resolvedDueDate <= start) {
+    return res.status(400).json({ error: "Due date must be after the start date." });
   }
   const periodDays = Math.round((resolvedDueDate.getTime() - start.getTime()) / 86400000);
 

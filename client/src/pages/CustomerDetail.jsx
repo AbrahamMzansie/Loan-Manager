@@ -19,6 +19,12 @@ function isAutoWindow(startDate) {
 function autoDueDate(startDate) {
   return new Date(startDate.getFullYear(), startDate.getMonth() + 1, 5);
 }
+function toDateInputValue(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export default function CustomerDetail() {
   const { id } = useParams();
@@ -40,6 +46,18 @@ export default function CustomerDetail() {
   }
 
   useEffect(() => { load(); }, [id]);
+
+  // Pre-fill the suggested due date whenever the loan form opens or the
+  // start date changes, for starts in the 5th-25th auto window. Still
+  // editable afterward — this is only a starting suggestion.
+  useEffect(() => {
+    if (!showLoanForm) return;
+    const start = loanForm.startDate ? new Date(loanForm.startDate) : new Date();
+    if (isAutoWindow(start)) {
+      setLoanForm((f) => ({ ...f, dueDate: toDateInputValue(autoDueDate(start)) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLoanForm, loanForm.startDate]);
 
   async function saveCustomer(e) {
     e.preventDefault();
@@ -157,24 +175,13 @@ export default function CustomerDetail() {
             <div><label>Interest rate % (blank = default)</label><input type="number" step="0.1" value={loanForm.interestRate} onChange={(e) => setLoanForm({ ...loanForm, interestRate: e.target.value })} placeholder="30" /></div>
             <div><label>Start date (blank = today)</label><input type="date" value={loanForm.startDate} onChange={(e) => setLoanForm({ ...loanForm, startDate: e.target.value })} /></div>
             <div>
-              {auto ? (
-                <>
-                  <label>Due date</label>
-                  <p className="muted small" style={{ marginTop: 4 }}>
-                    {autoDueDate(effectiveStart).toLocaleDateString()} — automatic (started 5th-25th)
-                  </p>
-                </>
-              ) : (
-                <>
-                  <label>Due date * (manual — started 26th-4th)</label>
-                  <input
-                    required
-                    type="date"
-                    value={loanForm.dueDate}
-                    onChange={(e) => setLoanForm({ ...loanForm, dueDate: e.target.value })}
-                  />
-                </>
-              )}
+              <label>{auto ? "Due date * (suggested — edit if needed)" : "Due date * (manual — started 26th-4th)"}</label>
+              <input
+                required
+                type="date"
+                value={loanForm.dueDate}
+                onChange={(e) => setLoanForm({ ...loanForm, dueDate: e.target.value })}
+              />
             </div>
             <div className="span-2"><label>Notes</label><input value={loanForm.notes} onChange={(e) => setLoanForm({ ...loanForm, notes: e.target.value })} /></div>
             <div className="span-2">
