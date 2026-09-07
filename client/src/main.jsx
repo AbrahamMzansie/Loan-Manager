@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import App from "./App";
+import { ToastProvider } from "./components/Toast";
 import { initSync } from "./offline/sync";
 import "./styles.css";
 
@@ -9,8 +10,10 @@ initSync();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
+    <ToastProvider>
+      <HashRouter>
+        <App />
+      </HashRouter>
+    </ToastProvider>
   </React.StrictMode>
 );

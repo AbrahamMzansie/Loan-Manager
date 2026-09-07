@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
+import { useToast } from "../components/Toast";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -12,6 +13,8 @@ export default function Customers() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", idNumber: "", notes: "" });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
 
   function load(q) {
     api.listCustomers(q).then(setCustomers).catch((e) => setError(e.message));
@@ -26,17 +29,23 @@ export default function Customers() {
 
   async function addCustomer(e) {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
     try {
       const res = await api.createCustomer(form);
       setForm({ name: "", phone: "", email: "", address: "", idNumber: "", notes: "" });
       setShowForm(false);
       if (res.queued) {
-        setError("You're offline — the new customer is queued and will be saved once you're back online.");
+        toast("Offline — customer queued, will sync once back online.", "info");
+      } else {
+        toast("Customer added.");
       }
       load(search);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -76,7 +85,7 @@ export default function Customers() {
             <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
           <div className="span-2">
-            <button type="submit">Save customer</button>
+            <button type="submit" disabled={submitting}>{submitting && <span className="btn-spinner" />}{submitting ? "Saving..." : "Save customer"}</button>
           </div>
         </form>
       )}

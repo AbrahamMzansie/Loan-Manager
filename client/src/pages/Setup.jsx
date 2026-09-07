@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken, setStoredUser } from "../api";
+import { useToast } from "../components/Toast";
 
 export default function Setup({ onLogin }) {
   const [name, setName] = useState("");
@@ -9,9 +10,11 @@ export default function Setup({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
 
   async function submit(e) {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
     try {
@@ -19,6 +22,7 @@ export default function Setup({ onLogin }) {
       setToken(token);
       setStoredUser(user);
       onLogin(user);
+      toast("Admin account created.");
       navigate("/");
     } catch (err) {
       setError(err.message || "Setup failed");
@@ -41,7 +45,7 @@ export default function Setup({ onLogin }) {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <label>Password</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-        <button type="submit" disabled={loading}>{loading ? "Creating..." : "Create account"}</button>
+        <button type="submit" disabled={loading}>{loading && <span className="btn-spinner" />}{loading ? "Creating..." : "Create account"}</button>
         <p className="muted small"><Link to="/login">Back to login</Link></p>
       </form>
     </div>

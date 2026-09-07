@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
+import { useToast } from "../components/Toast";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -13,7 +14,9 @@ export default function LoanDetail() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("cash");
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [markingPaid, setMarkingPaid] = useState(false);
+  const toast = useToast();
 
   function load() {
     api.getLoan(id).then(setLoan).catch((e) => setError(e.message));
@@ -23,29 +26,38 @@ export default function LoanDetail() {
 
   async function recordPayment(e) {
     e.preventDefault();
+    if (recording || markingPaid) return;
     setError("");
-    setInfo("");
+    setRecording(true);
     try {
       const res = await api.recordPayment(id, { amount: Number(amount), method });
       setAmount("");
       if (res.queued) {
-        setInfo("Offline — payment queued and will sync once you're back online.");
+        toast("Offline — payment queued, will sync once back online.", "info");
       } else {
-        setInfo(res.loan.status === "paid" ? "Payment recorded — loan is now fully paid." : "Payment recorded.");
+        toast(res.loan.status === "paid" ? "Payment recorded — loan is now fully paid." : "Payment recorded.");
       }
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setRecording(false);
     }
   }
 
   async function markPaid() {
+    if (recording || markingPaid) return;
     if (!confirm("Mark this loan as fully paid without recording an exact payment amount?")) return;
+    setError("");
+    setMarkingPaid(true);
     try {
       await api.markPaid(id);
+      toast("Loan marked as paid.");
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setMarkingPaid(false);
     }
   }
 
@@ -63,7 +75,6 @@ export default function LoanDetail() {
       </div>
 
       {error && <div className="error-box">{error}</div>}
-      {info && <div className="info-box">{info}</div>}
 
       <div className="stat-grid">
         <div className="stat-card"><div className="stat-value">{money(loan.principal)}</div><div className="stat-label">Principal</div></div>
@@ -99,8 +110,12 @@ export default function LoanDetail() {
                 <option value="other">Other</option>
               </select>
             </div>
-            <button type="submit">Record payment</button>
-            <button type="button" className="btn-secondary" onClick={markPaid}>Mark fully paid</button>
+            <button type="submit" disabled={recording || markingPaid}>
+              {recording && <span className="btn-spinner" />}{recording ? "Recording..." : "Record payment"}
+            </button>
+            <button type="button" className="btn-secondary" onClick={markPaid} disabled={recording || markingPaid}>
+              {markingPaid && <span className="btn-spinner" />}{markingPaid ? "Marking..." : "Mark fully paid"}
+            </button>
           </form>
         </>
       )}

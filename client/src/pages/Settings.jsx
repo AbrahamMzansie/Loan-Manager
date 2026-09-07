@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { useToast } from "../components/Toast";
 
 export default function Settings({ user }) {
   const [settings, setSettings] = useState(null);
@@ -7,8 +8,10 @@ export default function Settings({ user }) {
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [mySaved, setMySaved] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savingMine, setSavingMine] = useState(false);
+  const [addingUser, setAddingUser] = useState(false);
+  const toast = useToast();
 
   function load() {
     api.getSettings().then((s) => {
@@ -25,44 +28,55 @@ export default function Settings({ user }) {
 
   async function saveSettings(e) {
     e.preventDefault();
+    if (savingSettings) return;
     setError("");
-    setSaved(false);
+    setSavingSettings(true);
     try {
       await api.updateSettings({
         businessName: settings.businessName,
         defaultRate: Number(settings.defaultRate),
         defaultPeriodDays: Number(settings.defaultPeriodDays),
       });
-      setSaved(true);
+      toast("Business settings saved.");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSavingSettings(false);
     }
   }
 
   async function saveMySettings(e) {
     e.preventDefault();
+    if (savingMine) return;
     setError("");
-    setMySaved(false);
+    setSavingMine(true);
     try {
       await api.updateMySettings({
         defaultRate: mine.defaultRate === "" ? null : Number(mine.defaultRate) / 100,
         defaultPeriodDays: mine.defaultPeriodDays === "" ? null : Number(mine.defaultPeriodDays),
       });
-      setMySaved(true);
+      toast("Your defaults were saved.");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSavingMine(false);
     }
   }
 
   async function addUser(e) {
     e.preventDefault();
+    if (addingUser) return;
     setError("");
+    setAddingUser(true);
     try {
       await api.createUser(newUser);
       setNewUser({ name: "", email: "", password: "", role: "staff" });
+      toast("Staff member added.");
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setAddingUser(false);
     }
   }
 
@@ -78,7 +92,6 @@ export default function Settings({ user }) {
         Used for new loans you create. Leave blank to use the business default
         ({(settings.defaultRate * 100).toFixed(0)}% / {settings.defaultPeriodDays} days).
       </p>
-      {mySaved && <div className="info-box">Your defaults were saved.</div>}
       <form className="card form-grid" onSubmit={saveMySettings}>
         <div>
           <label>My default interest rate (%)</label>
@@ -99,14 +112,15 @@ export default function Settings({ user }) {
             onChange={(e) => setMine({ ...mine, defaultPeriodDays: e.target.value })}
           />
         </div>
-        <div className="span-2"><button type="submit">Save my defaults</button></div>
+        <div className="span-2">
+          <button type="submit" disabled={savingMine}>{savingMine && <span className="btn-spinner" />}{savingMine ? "Saving..." : "Save my defaults"}</button>
+        </div>
       </form>
 
       {user.role === "admin" && (
         <>
           <h2>Business default loan terms</h2>
           <p className="muted">Used for any staff member who hasn't set their own defaults above.</p>
-          {saved && <div className="info-box">Settings saved.</div>}
           <form className="card form-grid" onSubmit={saveSettings}>
             <div className="span-2">
               <label>Business name</label>
@@ -120,7 +134,9 @@ export default function Settings({ user }) {
               <label>Default period (days)</label>
               <input type="number" value={settings.defaultPeriodDays} onChange={(e) => setSettings({ ...settings, defaultPeriodDays: Number(e.target.value) })} />
             </div>
-            <div className="span-2"><button type="submit">Save settings</button></div>
+            <div className="span-2">
+              <button type="submit" disabled={savingSettings}>{savingSettings && <span className="btn-spinner" />}{savingSettings ? "Saving..." : "Save settings"}</button>
+            </div>
           </form>
 
           <h2>Staff accounts</h2>
@@ -146,7 +162,9 @@ export default function Settings({ user }) {
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div className="span-2"><button type="submit">Add staff member</button></div>
+            <div className="span-2">
+              <button type="submit" disabled={addingUser}>{addingUser && <span className="btn-spinner" />}{addingUser ? "Adding..." : "Add staff member"}</button>
+            </div>
           </form>
         </>
       )}

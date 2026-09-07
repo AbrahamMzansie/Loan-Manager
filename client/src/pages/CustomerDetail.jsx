@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api";
 import LoanStatusBadge from "../components/LoanStatusBadge";
+import { useToast } from "../components/Toast";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -16,6 +17,10 @@ export default function CustomerDetail() {
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [loanForm, setLoanForm] = useState({ principal: "", interestRate: "", periodDays: "", startDate: "", notes: "" });
   const [error, setError] = useState("");
+  const [savingCustomer, setSavingCustomer] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [addingLoan, setAddingLoan] = useState(false);
+  const toast = useToast();
 
   function load() {
     api.getCustomer(id).then((c) => { setCustomer(c); setForm(c); }).catch((e) => setError(e.message));
@@ -25,19 +30,26 @@ export default function CustomerDetail() {
 
   async function saveCustomer(e) {
     e.preventDefault();
+    if (savingCustomer) return;
     setError("");
+    setSavingCustomer(true);
     try {
       await api.updateCustomer(id, form);
       setEditing(false);
+      toast("Customer updated.");
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSavingCustomer(false);
     }
   }
 
   async function addLoan(e) {
     e.preventDefault();
+    if (addingLoan) return;
     setError("");
+    setAddingLoan(true);
     try {
       const payload = {
         customerId: Number(id),
@@ -50,20 +62,31 @@ export default function CustomerDetail() {
       const res = await api.createLoan(payload);
       setLoanForm({ principal: "", interestRate: "", periodDays: "", startDate: "", notes: "" });
       setShowLoanForm(false);
-      if (res.queued) setError("Offline — the new loan is queued and will sync once you're back online.");
+      if (res.queued) {
+        toast("Offline — loan queued, will sync once back online.", "info");
+      } else {
+        toast("Loan created.");
+      }
       load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setAddingLoan(false);
     }
   }
 
   async function deleteCustomer() {
+    if (deleting) return;
     if (!confirm("Delete this customer? This only works if they have no loan history.")) return;
+    setError("");
+    setDeleting(true);
     try {
       await api.deleteCustomer(id);
+      toast("Customer deleted.");
       navigate("/customers");
     } catch (err) {
       setError(err.message);
+      setDeleting(false);
     }
   }
 
@@ -76,8 +99,10 @@ export default function CustomerDetail() {
       <div className="page-header">
         <h1>{customer.name}</h1>
         <div>
-          <button onClick={() => setEditing((s) => !s)}>{editing ? "Cancel" : "Edit"}</button>{" "}
-          <button className="btn-danger" onClick={deleteCustomer}>Delete</button>
+          <button onClick={() => setEditing((s) => !s)} disabled={deleting}>{editing ? "Cancel" : "Edit"}</button>{" "}
+          <button className="btn-danger" onClick={deleteCustomer} disabled={deleting}>
+            {deleting && <span className="btn-spinner" />}{deleting ? "Deleting..." : "Delete"}
+          </button>
         </div>
       </div>
 
@@ -91,7 +116,9 @@ export default function CustomerDetail() {
           <div><label>ID number</label><input value={form.idNumber || ""} onChange={(e) => setForm({ ...form, idNumber: e.target.value })} /></div>
           <div className="span-2"><label>Address</label><input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
           <div className="span-2"><label>Notes</label><textarea value={form.notes || ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-          <div className="span-2"><button type="submit">Save</button></div>
+          <div className="span-2">
+            <button type="submit" disabled={savingCustomer}>{savingCustomer && <span className="btn-spinner" />}{savingCustomer ? "Saving..." : "Save"}</button>
+          </div>
         </form>
       ) : (
         <div className="card">
@@ -115,7 +142,9 @@ export default function CustomerDetail() {
           <div><label>Period days (blank = default)</label><input type="number" value={loanForm.periodDays} onChange={(e) => setLoanForm({ ...loanForm, periodDays: e.target.value })} placeholder="30" /></div>
           <div><label>Start date (blank = today)</label><input type="date" value={loanForm.startDate} onChange={(e) => setLoanForm({ ...loanForm, startDate: e.target.value })} /></div>
           <div className="span-2"><label>Notes</label><input value={loanForm.notes} onChange={(e) => setLoanForm({ ...loanForm, notes: e.target.value })} /></div>
-          <div className="span-2"><button type="submit">Create loan</button></div>
+          <div className="span-2">
+            <button type="submit" disabled={addingLoan}>{addingLoan && <span className="btn-spinner" />}{addingLoan ? "Creating..." : "Create loan"}</button>
+          </div>
         </form>
       )}
 
