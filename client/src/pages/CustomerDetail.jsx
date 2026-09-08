@@ -5,6 +5,7 @@ import LoanStatusBadge from "../components/LoanStatusBadge";
 import { useToast } from "../components/Toast";
 import { useConfirm } from "../components/Confirm";
 import PageLoader from "../components/PageLoader";
+import PhoneActions from "../components/PhoneActions";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -153,7 +154,7 @@ export default function CustomerDetail() {
         </form>
       ) : (
         <div className="card">
-          <p><strong>Phone:</strong> {customer.phone || "—"}</p>
+          <p><strong>Phone:</strong> {customer.phone || "—"}<PhoneActions phone={customer.phone} /></p>
           <p><strong>Email:</strong> {customer.email || "—"}</p>
           <p><strong>ID number:</strong> {customer.idNumber || "—"}</p>
           <p><strong>Address:</strong> {customer.address || "—"}</p>

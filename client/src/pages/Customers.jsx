@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useToast } from "../components/Toast";
 import PageLoader from "../components/PageLoader";
+import PhoneActions from "../components/PhoneActions";
 
 function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -157,7 +158,7 @@ export default function Customers() {
                   <td><Link to={`/customers/${c.id}`}>{c.name}</Link></td>
                   <td className="col-tight">{c.loans.length}</td>
                   <td>{money(c.outstanding)}</td>
-                  <td>{c.phone || "—"}</td>
+                  <td>{c.phone || "—"}<PhoneActions phone={c.phone} /></td>
                 </tr>
               ))}
               {customers.length === 0 && (
