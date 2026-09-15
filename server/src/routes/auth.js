@@ -8,10 +8,28 @@ const router = express.Router();
 
 function signToken(user) {
   return jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role },
+    {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      loansEnabled: user.loansEnabled,
+      invoicesEnabled: user.invoicesEnabled,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "30d" }
   );
+}
+
+function publicUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    loansEnabled: user.loansEnabled,
+    invoicesEnabled: user.invoicesEnabled,
+  };
 }
 
 router.post("/login", async (req, res) => {
@@ -25,10 +43,7 @@ router.post("/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
   const token = signToken(user);
-  res.json({
-    token,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
-  });
+  res.json({ token, user: publicUser(user) });
 });
 
 // Bootstrap route: creates the very first admin account when the users
@@ -54,12 +69,12 @@ router.post("/register-first-admin", async (req, res) => {
   });
 
   const token = signToken(user);
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  res.json({ token, user: publicUser(user) });
 });
 
 // Admin-only: invite/create staff or admin accounts.
 router.post("/users", requireAuth, requireAdmin, async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, loansEnabled, invoicesEnabled } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ error: "Name, email and password required" });
   }
@@ -68,17 +83,42 @@ router.post("/users", requireAuth, requireAdmin, async (req, res) => {
 
   const hash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, password: hash, role: role === "admin" ? "admin" : "staff" },
+    data: {
+      name,
+      email,
+      password: hash,
+      role: role === "admin" ? "admin" : "staff",
+      loansEnabled: loansEnabled != null ? loansEnabled : true,
+      invoicesEnabled: invoicesEnabled != null ? invoicesEnabled : true,
+    },
   });
-  res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role });
+  res.status(201).json(publicUser(user));
 });
 
 router.get("/users", requireAuth, requireAdmin, async (req, res) => {
   const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, loansEnabled: true, invoicesEnabled: true, createdAt: true },
     orderBy: { createdAt: "asc" },
   });
   res.json(users);
+});
+
+// Admin-only: change which sections of the app a staff member sees.
+router.put("/users/:id", requireAuth, requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const { loansEnabled, invoicesEnabled } = req.body;
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        loansEnabled: loansEnabled != null ? loansEnabled : undefined,
+        invoicesEnabled: invoicesEnabled != null ? invoicesEnabled : undefined,
+      },
+    });
+    res.json(publicUser(user));
+  } catch (err) {
+    res.status(404).json({ error: "User not found" });
+  }
 });
 
 router.get("/me", requireAuth, async (req, res) => {

@@ -5,7 +5,7 @@ import PageLoader from "../components/PageLoader";
 
 const MAX_LOGO_BYTES = 300 * 1024;
 
-export default function Settings({ user }) {
+export default function Settings({ user, onUpdateUser }) {
   const [settings, setSettings] = useState(null);
   const [mine, setMine] = useState({ defaultRate: "", defaultPeriodDays: "" });
   const [myInvoice, setMyInvoice] = useState({
@@ -16,12 +16,14 @@ export default function Settings({ user }) {
     bankName: "",
     branchCode: "",
   });
+  const [myWorkspace, setMyWorkspace] = useState({ loansEnabled: true, invoicesEnabled: true });
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
   const [error, setError] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
   const [savingMine, setSavingMine] = useState(false);
   const [savingInvoice, setSavingInvoice] = useState(false);
+  const [savingWorkspace, setSavingWorkspace] = useState(false);
   const [addingUser, setAddingUser] = useState(false);
   const toast = useToast();
 
@@ -39,6 +41,10 @@ export default function Settings({ user }) {
         bankAccountNumber: s.myInvoiceBankAccountNumber || "",
         bankName: s.myInvoiceBankName || "",
         branchCode: s.myInvoiceBranchCode || "",
+      });
+      setMyWorkspace({
+        loansEnabled: s.myLoansEnabled !== false,
+        invoicesEnabled: s.myInvoicesEnabled !== false,
       });
     });
     if (user.role === "admin") api.listUsers().then(setUsers).catch(() => {});
@@ -118,6 +124,36 @@ export default function Settings({ user }) {
     }
   }
 
+  async function saveMyWorkspace(e) {
+    e.preventDefault();
+    if (savingWorkspace) return;
+    setError("");
+    setSavingWorkspace(true);
+    try {
+      await api.updateMySettings({
+        loansEnabled: myWorkspace.loansEnabled,
+        invoicesEnabled: myWorkspace.invoicesEnabled,
+      });
+      onUpdateUser?.({ loansEnabled: myWorkspace.loansEnabled, invoicesEnabled: myWorkspace.invoicesEnabled });
+      toast("Your workspace was updated.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingWorkspace(false);
+    }
+  }
+
+  async function toggleStaffFeature(staffId, field, value) {
+    setError("");
+    setUsers((list) => list.map((u) => (u.id === staffId ? { ...u, [field]: value } : u)));
+    try {
+      await api.updateUser(staffId, { [field]: value });
+    } catch (err) {
+      setError(err.message);
+      load(); // revert the optimistic update
+    }
+  }
+
   async function addUser(e) {
     e.preventDefault();
     if (addingUser) return;
@@ -141,6 +177,30 @@ export default function Settings({ user }) {
     <div>
       <h1>Settings</h1>
       {error && <div className="error-box">{error}</div>}
+
+      <h2>My workspace</h2>
+      <p className="muted">Choose which sections you see in the sidebar. Doesn't affect anyone else.</p>
+      <form className="card" onSubmit={saveMyWorkspace}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400 }}>
+          <input
+            type="checkbox"
+            checked={myWorkspace.loansEnabled}
+            onChange={(e) => setMyWorkspace({ ...myWorkspace, loansEnabled: e.target.checked })}
+          />
+          Show Loans
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400, marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={myWorkspace.invoicesEnabled}
+            onChange={(e) => setMyWorkspace({ ...myWorkspace, invoicesEnabled: e.target.checked })}
+          />
+          Show Invoices
+        </label>
+        <div style={{ marginTop: 14 }}>
+          <button type="submit" disabled={savingWorkspace}>{savingWorkspace && <span className="btn-spinner" />}{savingWorkspace ? "Saving..." : "Save workspace"}</button>
+        </div>
+      </form>
 
       <h2>My default loan terms</h2>
       <p className="muted">
@@ -239,12 +299,31 @@ export default function Settings({ user }) {
           </form>
 
           <h2>Staff accounts</h2>
+          <p className="muted">Toggle which sections each staff member sees. They'll need to log back in for it to take effect if they're already signed in.</p>
           <div className="table-wrap">
             <table className="table">
-              <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Loans</th><th>Invoices</th></tr></thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id}><td>{u.name}</td><td>{u.email}</td><td>{u.role}</td></tr>
+                  <tr key={u.id}>
+                    <td>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>{u.role}</td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={u.loansEnabled !== false}
+                        onChange={(e) => toggleStaffFeature(u.id, "loansEnabled", e.target.checked)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={u.invoicesEnabled !== false}
+                        onChange={(e) => toggleStaffFeature(u.id, "invoicesEnabled", e.target.checked)}
+                      />
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>

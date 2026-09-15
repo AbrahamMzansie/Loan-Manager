@@ -21,6 +21,8 @@ router.get("/", async (req, res) => {
     myInvoiceBankAccountNumber: me.invoiceBankAccountNumber,
     myInvoiceBankName: me.invoiceBankName,
     myInvoiceBranchCode: me.invoiceBranchCode,
+    myLoansEnabled: me.loansEnabled,
+    myInvoicesEnabled: me.invoicesEnabled,
   });
 });
 
@@ -47,6 +49,8 @@ router.put("/me", async (req, res) => {
     invoiceBankAccountNumber,
     invoiceBankName,
     invoiceBranchCode,
+    loansEnabled,
+    invoicesEnabled,
   } = req.body;
   const user = await prisma.user.update({
     where: { id: req.user.id },
@@ -59,6 +63,8 @@ router.put("/me", async (req, res) => {
       invoiceBankAccountNumber,
       invoiceBankName,
       invoiceBranchCode,
+      loansEnabled: loansEnabled != null ? loansEnabled : undefined,
+      invoicesEnabled: invoicesEnabled != null ? invoicesEnabled : undefined,
     },
   });
   res.json({
@@ -70,6 +76,8 @@ router.put("/me", async (req, res) => {
     invoiceBankAccountNumber: user.invoiceBankAccountNumber,
     invoiceBankName: user.invoiceBankName,
     invoiceBranchCode: user.invoiceBranchCode,
+    loansEnabled: user.loansEnabled,
+    invoicesEnabled: user.invoicesEnabled,
   });
 });
 

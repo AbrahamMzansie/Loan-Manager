@@ -77,6 +77,7 @@ export const api = {
   me: () => apiFetch("/auth/me"),
   listUsers: () => apiFetch("/auth/users"),
   createUser: (data) => apiFetch("/auth/users", { method: "POST", body: data }),
+  updateUser: (id, data) => apiFetch(`/auth/users/${id}`, { method: "PUT", body: data }),
 
   listCustomers: (search) => apiFetch(`/customers${search ? `?search=${encodeURIComponent(search)}` : ""}`),
   getCustomer: (id) => apiFetch(`/customers/${id}`),

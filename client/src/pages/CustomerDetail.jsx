@@ -27,7 +27,7 @@ function toDateInputValue(date) {
   return `${y}-${m}-${d}`;
 }
 
-export default function CustomerDetail() {
+export default function CustomerDetail({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState(null);
@@ -209,6 +209,8 @@ export default function CustomerDetail() {
         </div>
       )}
 
+      {user?.loansEnabled !== false && (
+      <>
       <div className="page-header">
         <h2>Loans</h2>
         <button onClick={() => setShowLoanForm((s) => !s)}>{showLoanForm ? "Cancel" : "+ New loan"}</button>
@@ -259,7 +261,11 @@ export default function CustomerDetail() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
 
+      {user?.invoicesEnabled !== false && (
+      <>
       <div className="page-header">
         <h2>Invoices</h2>
         <button onClick={() => setShowInvoiceForm((s) => !s)}>{showInvoiceForm ? "Cancel" : "+ New invoice"}</button>
@@ -324,6 +330,8 @@ export default function CustomerDetail() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </div>
   );
 }

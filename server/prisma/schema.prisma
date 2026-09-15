@@ -24,6 +24,10 @@ model User {
   invoiceBankAccountNumber String?
   invoiceBankName          String?
   invoiceBranchCode        String?
+  // Which sections of the app this user sees in the nav - lets a lender who
+  // only does invoicing (or only lending) hide the screens they don't use.
+  loansEnabled    Boolean @default(true)
+  invoicesEnabled Boolean @default(true)
   createdAt DateTime @default(now())
 }
 

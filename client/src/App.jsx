@@ -14,16 +14,33 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import PublicInvoice from "./pages/PublicInvoice";
 import PublicLoanStatement from "./pages/PublicLoanStatement";
 import Settings from "./pages/Settings";
-import { getStoredUser } from "./api";
+import { getStoredUser, setStoredUser } from "./api";
 
 function PrivateRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
+// A feature-gated route: if the user has this section hidden (see Settings
+// > "My workspace"), send them home instead of showing it. `!== false`
+// defaults to shown for older cached sessions that predate this field.
+function FeatureRoute({ user, enabled, children }) {
+  if (!user) return <Navigate to="/login" replace />;
+  if (enabled === false) return <Navigate to="/" replace />;
+  return children;
+}
+
 export default function App() {
   const [user, setUser] = useState(getStoredUser());
   const location = useLocation();
+
+  function updateUser(patch) {
+    setUser((u) => {
+      const updated = { ...u, ...patch };
+      setStoredUser(updated);
+      return updated;
+    });
+  }
 
   // Reachable with or without being logged in - a customer opening one of
   // these links (e.g. from WhatsApp) is never a logged-in app user.
@@ -51,13 +68,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<PrivateRoute user={user}><Dashboard /></PrivateRoute>} />
         <Route path="/customers" element={<PrivateRoute user={user}><Customers /></PrivateRoute>} />
-        <Route path="/customers/:id" element={<PrivateRoute user={user}><CustomerDetail /></PrivateRoute>} />
-        <Route path="/loans" element={<PrivateRoute user={user}><Loans /></PrivateRoute>} />
-        <Route path="/loans/:id" element={<PrivateRoute user={user}><LoanDetail /></PrivateRoute>} />
-        <Route path="/loans/:id/invoice" element={<PrivateRoute user={user}><Invoice /></PrivateRoute>} />
-        <Route path="/invoices" element={<PrivateRoute user={user}><Invoices /></PrivateRoute>} />
-        <Route path="/invoices/:id" element={<PrivateRoute user={user}><InvoiceDetail /></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute user={user}><Settings user={user} /></PrivateRoute>} />
+        <Route path="/customers/:id" element={<PrivateRoute user={user}><CustomerDetail user={user} /></PrivateRoute>} />
+        <Route path="/loans" element={<FeatureRoute user={user} enabled={user.loansEnabled}><Loans /></FeatureRoute>} />
+        <Route path="/loans/:id" element={<FeatureRoute user={user} enabled={user.loansEnabled}><LoanDetail /></FeatureRoute>} />
+        <Route path="/loans/:id/invoice" element={<FeatureRoute user={user} enabled={user.loansEnabled}><Invoice /></FeatureRoute>} />
+        <Route path="/invoices" element={<FeatureRoute user={user} enabled={user.invoicesEnabled}><Invoices /></FeatureRoute>} />
+        <Route path="/invoices/:id" element={<FeatureRoute user={user} enabled={user.invoicesEnabled}><InvoiceDetail /></FeatureRoute>} />
+        <Route path="/settings" element={<PrivateRoute user={user}><Settings user={user} onUpdateUser={updateUser} /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
