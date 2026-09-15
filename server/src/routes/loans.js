@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
 const { computeLoanBalance } = require("../utils/interest");
@@ -152,6 +153,21 @@ router.post("/:id/mark-paid", async (req, res) => {
 
   const loan = await prisma.loan.update({ where: { id }, data: { status: "paid" } });
   res.json(loan);
+});
+
+// Get (or create, on first use) the token that lets this loan's invoice be
+// viewed publicly without logging in, e.g. from a WhatsApp link.
+router.post("/:id/share", async (req, res) => {
+  const id = Number(req.params.id);
+  const loan = await prisma.loan.findFirst({ where: { id, customer: ownerScope(req) } });
+  if (!loan) return res.status(404).json({ error: "Loan not found" });
+
+  if (loan.shareToken) {
+    return res.json({ shareToken: loan.shareToken });
+  }
+  const shareToken = crypto.randomBytes(20).toString("hex");
+  await prisma.loan.update({ where: { id }, data: { shareToken } });
+  res.json({ shareToken });
 });
 
 router.delete("/:id", async (req, res) => {

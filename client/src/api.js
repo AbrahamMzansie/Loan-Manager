@@ -91,12 +91,15 @@ export const api = {
   recordPayment: (loanId, data) => apiFetch(`/loans/${loanId}/payments`, { method: "POST", body: data }),
   markPaid: (loanId) => apiFetch(`/loans/${loanId}/mark-paid`, { method: "POST" }),
   deleteLoan: (id) => apiFetch(`/loans/${id}`, { method: "DELETE" }),
+  shareLoanInvoice: (id) => apiFetch(`/loans/${id}/share`, { method: "POST" }),
 
   dashboard: () => apiFetch("/dashboard"),
 
   getSettings: () => apiFetch("/settings"),
   updateSettings: (data) => apiFetch("/settings", { method: "PUT", body: data }),
   updateMySettings: (data) => apiFetch("/settings/me", { method: "PUT", body: data }),
+
+  getPublicInvoice: (token) => apiFetch(`/public/invoices/${token}`, { auth: false }),
 };
 
 export { ApiError };

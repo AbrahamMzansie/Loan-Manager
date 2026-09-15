@@ -41,6 +41,7 @@ model Loan {
   startDate    DateTime  @default(now())
   status       String    @default("active") // "active" | "paid" | "written_off"
   notes        String?
+  shareToken   String?   @unique // set on first "send invoice"; lets the public invoice link work without login
   createdBy    Int?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

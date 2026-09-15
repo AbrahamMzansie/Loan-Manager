@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
@@ -9,6 +9,7 @@ import CustomerDetail from "./pages/CustomerDetail";
 import Loans from "./pages/Loans";
 import LoanDetail from "./pages/LoanDetail";
 import Invoice from "./pages/Invoice";
+import PublicInvoice from "./pages/PublicInvoice";
 import Settings from "./pages/Settings";
 import { getStoredUser } from "./api";
 
@@ -19,6 +20,17 @@ function PrivateRoute({ user, children }) {
 
 export default function App() {
   const [user, setUser] = useState(getStoredUser());
+  const location = useLocation();
+
+  // Reachable with or without being logged in - a customer opening this
+  // link (e.g. from WhatsApp) is never a logged-in app user.
+  if (location.pathname.startsWith("/invoice/public/")) {
+    return (
+      <Routes>
+        <Route path="/invoice/public/:token" element={<PublicInvoice />} />
+      </Routes>
+    );
+  }
 
   if (!user) {
     return (

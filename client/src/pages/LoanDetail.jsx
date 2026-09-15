@@ -171,9 +171,7 @@ export default function LoanDetail() {
         <p><strong>Due date:</strong> {new Date(balanceInfo.dueDate).toLocaleDateString()}</p>
         <p><strong>Interest periods elapsed:</strong> {balanceInfo.periodsElapsed}</p>
         {loan.notes && <p><strong>Notes:</strong> {loan.notes}</p>}
-        {balanceInfo.isOverdue && (
-          <p><Link to={`/loans/${loan.id}/invoice`}>View / print overdue invoice</Link></p>
-        )}
+        <p><Link to={`/loans/${loan.id}/invoice`}>View invoice / statement</Link></p>
       </div>
 
       {!balanceInfo.isPaid && (

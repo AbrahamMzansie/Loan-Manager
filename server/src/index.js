@@ -7,6 +7,7 @@ const customerRoutes = require("./routes/customers");
 const loanRoutes = require("./routes/loans");
 const dashboardRoutes = require("./routes/dashboard");
 const settingsRoutes = require("./routes/settings");
+const publicRoutes = require("./routes/public");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/public", publicRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
