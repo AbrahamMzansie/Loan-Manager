@@ -9,7 +9,10 @@ import CustomerDetail from "./pages/CustomerDetail";
 import Loans from "./pages/Loans";
 import LoanDetail from "./pages/LoanDetail";
 import Invoice from "./pages/Invoice";
+import Invoices from "./pages/Invoices";
+import InvoiceDetail from "./pages/InvoiceDetail";
 import PublicInvoice from "./pages/PublicInvoice";
+import PublicLoanStatement from "./pages/PublicLoanStatement";
 import Settings from "./pages/Settings";
 import { getStoredUser } from "./api";
 
@@ -22,12 +25,13 @@ export default function App() {
   const [user, setUser] = useState(getStoredUser());
   const location = useLocation();
 
-  // Reachable with or without being logged in - a customer opening this
-  // link (e.g. from WhatsApp) is never a logged-in app user.
-  if (location.pathname.startsWith("/invoice/public/")) {
+  // Reachable with or without being logged in - a customer opening one of
+  // these links (e.g. from WhatsApp) is never a logged-in app user.
+  if (location.pathname.startsWith("/invoice/public/") || location.pathname.startsWith("/statement/public/")) {
     return (
       <Routes>
         <Route path="/invoice/public/:token" element={<PublicInvoice />} />
+        <Route path="/statement/public/:token" element={<PublicLoanStatement />} />
       </Routes>
     );
   }
@@ -51,6 +55,8 @@ export default function App() {
         <Route path="/loans" element={<PrivateRoute user={user}><Loans /></PrivateRoute>} />
         <Route path="/loans/:id" element={<PrivateRoute user={user}><LoanDetail /></PrivateRoute>} />
         <Route path="/loans/:id/invoice" element={<PrivateRoute user={user}><Invoice /></PrivateRoute>} />
+        <Route path="/invoices" element={<PrivateRoute user={user}><Invoices /></PrivateRoute>} />
+        <Route path="/invoices/:id" element={<PrivateRoute user={user}><InvoiceDetail /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute user={user}><Settings user={user} /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

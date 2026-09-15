@@ -3,14 +3,25 @@ import { api } from "../api";
 import { useToast } from "../components/Toast";
 import PageLoader from "../components/PageLoader";
 
+const MAX_LOGO_BYTES = 300 * 1024;
+
 export default function Settings({ user }) {
   const [settings, setSettings] = useState(null);
   const [mine, setMine] = useState({ defaultRate: "", defaultPeriodDays: "" });
+  const [myInvoice, setMyInvoice] = useState({
+    companyName: "",
+    logo: "",
+    bankAccountHolder: "",
+    bankAccountNumber: "",
+    bankName: "",
+    branchCode: "",
+  });
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
   const [error, setError] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
   const [savingMine, setSavingMine] = useState(false);
+  const [savingInvoice, setSavingInvoice] = useState(false);
   const [addingUser, setAddingUser] = useState(false);
   const toast = useToast();
 
@@ -20,6 +31,14 @@ export default function Settings({ user }) {
       setMine({
         defaultRate: s.myDefaultRate != null ? s.myDefaultRate * 100 : "",
         defaultPeriodDays: s.myDefaultPeriodDays != null ? s.myDefaultPeriodDays : "",
+      });
+      setMyInvoice({
+        companyName: s.myInvoiceCompanyName || "",
+        logo: s.myInvoiceLogo || "",
+        bankAccountHolder: s.myInvoiceBankAccountHolder || "",
+        bankAccountNumber: s.myInvoiceBankAccountNumber || "",
+        bankName: s.myInvoiceBankName || "",
+        branchCode: s.myInvoiceBranchCode || "",
       });
     });
     if (user.role === "admin") api.listUsers().then(setUsers).catch(() => {});
@@ -61,6 +80,41 @@ export default function Settings({ user }) {
       setError(err.message);
     } finally {
       setSavingMine(false);
+    }
+  }
+
+  function onLogoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_LOGO_BYTES) {
+      setError(`Logo image is too large (max ${Math.round(MAX_LOGO_BYTES / 1024)}KB). Try a smaller/compressed image.`);
+      return;
+    }
+    setError("");
+    const reader = new FileReader();
+    reader.onload = () => setMyInvoice({ ...myInvoice, logo: reader.result });
+    reader.readAsDataURL(file);
+  }
+
+  async function saveMyInvoiceProfile(e) {
+    e.preventDefault();
+    if (savingInvoice) return;
+    setError("");
+    setSavingInvoice(true);
+    try {
+      await api.updateMySettings({
+        invoiceCompanyName: myInvoice.companyName || null,
+        invoiceLogo: myInvoice.logo || null,
+        invoiceBankAccountHolder: myInvoice.bankAccountHolder || null,
+        invoiceBankAccountNumber: myInvoice.bankAccountNumber || null,
+        invoiceBankName: myInvoice.bankName || null,
+        invoiceBranchCode: myInvoice.branchCode || null,
+      });
+      toast("Your invoice profile was saved.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingInvoice(false);
     }
   }
 
@@ -115,6 +169,50 @@ export default function Settings({ user }) {
         </div>
         <div className="span-2">
           <button type="submit" disabled={savingMine}>{savingMine && <span className="btn-spinner" />}{savingMine ? "Saving..." : "Save my defaults"}</button>
+        </div>
+      </form>
+
+      <h2>My invoice profile</h2>
+      <p className="muted">
+        Shown on invoices you create (Invoices section) — a separate business identity from the lending business above.
+      </p>
+      <form className="card form-grid" onSubmit={saveMyInvoiceProfile}>
+        <div className="span-2">
+          <label>Company name</label>
+          <input
+            value={myInvoice.companyName}
+            onChange={(e) => setMyInvoice({ ...myInvoice, companyName: e.target.value })}
+            placeholder="e.g. Owen Transport Services (OTS)"
+          />
+        </div>
+        <div className="span-2">
+          <label>Logo</label>
+          <input type="file" accept="image/png,image/jpeg" onChange={onLogoChange} />
+          {myInvoice.logo && (
+            <div style={{ marginTop: 8 }}>
+              <img src={myInvoice.logo} alt="Logo preview" style={{ maxHeight: 60, maxWidth: 200 }} />{" "}
+              <button type="button" className="btn-secondary" onClick={() => setMyInvoice({ ...myInvoice, logo: "" })}>Remove</button>
+            </div>
+          )}
+        </div>
+        <div>
+          <label>Account holder</label>
+          <input value={myInvoice.bankAccountHolder} onChange={(e) => setMyInvoice({ ...myInvoice, bankAccountHolder: e.target.value })} />
+        </div>
+        <div>
+          <label>Account number</label>
+          <input value={myInvoice.bankAccountNumber} onChange={(e) => setMyInvoice({ ...myInvoice, bankAccountNumber: e.target.value })} />
+        </div>
+        <div>
+          <label>Bank name</label>
+          <input value={myInvoice.bankName} onChange={(e) => setMyInvoice({ ...myInvoice, bankName: e.target.value })} />
+        </div>
+        <div>
+          <label>Branch code</label>
+          <input value={myInvoice.branchCode} onChange={(e) => setMyInvoice({ ...myInvoice, branchCode: e.target.value })} />
+        </div>
+        <div className="span-2">
+          <button type="submit" disabled={savingInvoice}>{savingInvoice && <span className="btn-spinner" />}{savingInvoice ? "Saving..." : "Save invoice profile"}</button>
         </div>
       </form>
 

@@ -2,23 +2,23 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import PageLoader from "../components/PageLoader";
-import BusinessInvoiceDocument from "../components/BusinessInvoiceDocument";
-import { generateBusinessInvoicePdf } from "../utils/generateBusinessInvoicePdf";
+import InvoiceDocument from "../components/InvoiceDocument";
+import { generateInvoicePdf } from "../utils/generateInvoicePdf";
 
-export default function PublicInvoice() {
+export default function PublicLoanStatement() {
   const { token } = useParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.getPublicInvoice(token).then(setData).catch((e) => setError(e.message));
+    api.getPublicLoanStatement(token).then(setData).catch((e) => setError(e.message));
   }, [token]);
 
   if (error) return <div className="auth-screen"><div className="error-box">{error}</div></div>;
   if (!data) return <PageLoader />;
 
   function downloadPdf() {
-    generateBusinessInvoicePdf({ company: data.company, invoice: data.invoice, total: data.total });
+    generateInvoicePdf({ businessName: data.businessName, loan: data.loan, balanceInfo: data.balanceInfo });
   }
 
   return (
@@ -28,7 +28,7 @@ export default function PublicInvoice() {
           <span />
           <button onClick={downloadPdf}>Download PDF</button>
         </div>
-        <BusinessInvoiceDocument company={data.company} invoice={data.invoice} total={data.total} />
+        <InvoiceDocument businessName={data.businessName} loan={data.loan} balanceInfo={data.balanceInfo} />
       </div>
     </div>
   );

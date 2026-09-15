@@ -39,7 +39,7 @@ export default function Invoice() {
     setSending(true);
     try {
       const { shareToken } = await api.shareLoanInvoice(loan.id);
-      const link = `${window.location.origin}/#/invoice/public/${shareToken}`;
+      const link = `${window.location.origin}/#/statement/public/${shareToken}`;
       const message = `Hi ${loan.customer.name}, here's your loan statement from ${settings.businessName}: ${link}`;
       window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
       toast("WhatsApp opened with the invoice link.");

@@ -15,6 +15,15 @@ model User {
   role      String   @default("staff") // "admin" | "staff"
   defaultRate       Float? // personal default interest rate; falls back to org-wide Settings if unset
   defaultPeriodDays Int?   // personal default period length; falls back to org-wide Settings if unset
+  // Per-lender company profile shown on invoices this user creates (a
+  // separate side business's identity, e.g. Owen Transport Services) -
+  // distinct from the lending business's Settings.businessName.
+  invoiceCompanyName       String?
+  invoiceLogo              String? // base64 data URL
+  invoiceBankAccountHolder String?
+  invoiceBankAccountNumber String?
+  invoiceBankName          String?
+  invoiceBranchCode        String?
   createdAt DateTime @default(now())
 }
 
@@ -29,6 +38,7 @@ model Customer {
   createdBy Int?
   createdAt DateTime @default(now())
   loans     Loan[]
+  invoices  Invoice[]
 }
 
 model Loan {
@@ -71,4 +81,30 @@ model Settings {
   businessName      String @default("My Lending Business")
   defaultRate       Float  @default(0.30)
   defaultPeriodDays Int    @default(30)
+}
+
+// A simple itemized invoice for a side business (unrelated to loan
+// interest/balances) - e.g. transport trips billed to the same customer.
+model Invoice {
+  id         Int           @id @default(autoincrement())
+  customer   Customer      @relation(fields: [customerId], references: [id])
+  customerId Int
+  date       DateTime      @default(now())
+  notes      String?
+  shareToken String?       @unique
+  createdBy  Int?
+  createdAt  DateTime      @default(now())
+  items      InvoiceItem[]
+
+  @@index([customerId])
+}
+
+model InvoiceItem {
+  id          Int     @id @default(autoincrement())
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   Int
+  description String
+  amount      Float
+
+  @@index([invoiceId])
 }

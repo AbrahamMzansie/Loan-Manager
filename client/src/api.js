@@ -99,6 +99,15 @@ export const api = {
   updateSettings: (data) => apiFetch("/settings", { method: "PUT", body: data }),
   updateMySettings: (data) => apiFetch("/settings/me", { method: "PUT", body: data }),
 
+  getPublicLoanStatement: (token) => apiFetch(`/public/loan-statements/${token}`, { auth: false }),
+
+  listInvoices: (customerId) => apiFetch(`/invoices${customerId ? `?customerId=${customerId}` : ""}`),
+  getInvoice: (id) => apiFetch(`/invoices/${id}`),
+  createInvoice: (data) => apiFetch("/invoices", { method: "POST", body: data }),
+  updateInvoice: (id, data) => apiFetch(`/invoices/${id}`, { method: "PUT", body: data }),
+  deleteInvoice: (id) => apiFetch(`/invoices/${id}`, { method: "DELETE" }),
+  shareInvoice: (id) => apiFetch(`/invoices/${id}/share`, { method: "POST" }),
+
   getPublicInvoice: (token) => apiFetch(`/public/invoices/${token}`, { auth: false }),
 };
 

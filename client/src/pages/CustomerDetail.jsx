@@ -35,15 +35,20 @@ export default function CustomerDetail() {
   const [form, setForm] = useState(null);
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [loanForm, setLoanForm] = useState({ principal: "", interestRate: "", startDate: "", dueDate: "", notes: "" });
+  const [invoices, setInvoices] = useState([]);
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [invoiceForm, setInvoiceForm] = useState({ date: "", notes: "", items: [{ description: "", amount: "" }] });
   const [error, setError] = useState("");
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [addingLoan, setAddingLoan] = useState(false);
+  const [addingInvoice, setAddingInvoice] = useState(false);
   const toast = useToast();
   const confirmDialog = useConfirm();
 
   function load() {
     api.getCustomer(id).then((c) => { setCustomer(c); setForm(c); }).catch((e) => setError(e.message));
+    api.listInvoices(id).then(setInvoices).catch((e) => setError(e.message));
   }
 
   useEffect(() => { load(); }, [id]);
@@ -104,6 +109,48 @@ export default function CustomerDetail() {
       setError(err.message);
     } finally {
       setAddingLoan(false);
+    }
+  }
+
+  function updateInvoiceItem(index, field, value) {
+    const items = invoiceForm.items.map((it, i) => (i === index ? { ...it, [field]: value } : it));
+    setInvoiceForm({ ...invoiceForm, items });
+  }
+  function addInvoiceItemRow() {
+    setInvoiceForm({ ...invoiceForm, items: [...invoiceForm.items, { description: "", amount: "" }] });
+  }
+  function removeInvoiceItemRow(index) {
+    setInvoiceForm({ ...invoiceForm, items: invoiceForm.items.filter((_, i) => i !== index) });
+  }
+  const invoiceFormTotal = invoiceForm.items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+
+  async function addInvoice(e) {
+    e.preventDefault();
+    if (addingInvoice) return;
+    setError("");
+    setAddingInvoice(true);
+    try {
+      const payload = {
+        customerId: Number(id),
+        date: invoiceForm.date || undefined,
+        notes: invoiceForm.notes,
+        items: invoiceForm.items
+          .filter((it) => it.description && it.amount)
+          .map((it) => ({ description: it.description, amount: Number(it.amount) })),
+      };
+      const res = await api.createInvoice(payload);
+      setInvoiceForm({ date: "", notes: "", items: [{ description: "", amount: "" }] });
+      setShowInvoiceForm(false);
+      if (res.queued) {
+        toast("Offline — invoice queued, will sync once back online.", "info");
+      } else {
+        toast("Invoice created.");
+      }
+      load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAddingInvoice(false);
     }
   }
 
@@ -209,6 +256,71 @@ export default function CustomerDetail() {
               </tr>
             ))}
             {customer.loans.length === 0 && <tr><td colSpan={6} className="muted">No loans yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="page-header">
+        <h2>Invoices</h2>
+        <button onClick={() => setShowInvoiceForm((s) => !s)}>{showInvoiceForm ? "Cancel" : "+ New invoice"}</button>
+      </div>
+
+      {showInvoiceForm && (
+        <form className="card form-grid" onSubmit={addInvoice}>
+          <div><label>Date (blank = today)</label><input type="date" value={invoiceForm.date} onChange={(e) => setInvoiceForm({ ...invoiceForm, date: e.target.value })} /></div>
+          <div className="span-2">
+            <label>Items *</label>
+            {invoiceForm.items.map((item, i) => (
+              <div key={i} className="form-inline" style={{ marginTop: i === 0 ? 4 : 8 }}>
+                <div style={{ flex: 2, minWidth: 200 }}>
+                  <input
+                    required
+                    placeholder="Description"
+                    value={item.description}
+                    onChange={(e) => updateInvoiceItem(i, "description", e.target.value)}
+                  />
+                </div>
+                <div style={{ minWidth: 120 }}>
+                  <input
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Amount (R)"
+                    value={item.amount}
+                    onChange={(e) => updateInvoiceItem(i, "amount", e.target.value)}
+                  />
+                </div>
+                {invoiceForm.items.length > 1 && (
+                  <button type="button" className="btn-danger" onClick={() => removeInvoiceItemRow(i)}>Remove</button>
+                )}
+              </div>
+            ))}
+            <button type="button" className="btn-secondary" style={{ marginTop: 8 }} onClick={addInvoiceItemRow}>+ Add item</button>
+          </div>
+          <div className="span-2"><label>Notes</label><input value={invoiceForm.notes} onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })} /></div>
+          <div className="span-2"><strong>Total: {money(invoiceFormTotal)}</strong></div>
+          <div className="span-2">
+            <button type="submit" disabled={addingInvoice}>{addingInvoice && <span className="btn-spinner" />}{addingInvoice ? "Creating..." : "Create invoice"}</button>
+          </div>
+        </form>
+      )}
+
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
+            <tr><th>Date</th><th>Items</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody>
+            {invoices.map((inv) => (
+              <tr key={inv.id}>
+                <td>{new Date(inv.date).toLocaleDateString()}</td>
+                <td className="col-tight">{inv.items.length}</td>
+                <td>{money(inv.total)}</td>
+                <td><Link to={`/invoices/${inv.id}`}>Open</Link></td>
+              </tr>
+            ))}
+            {invoices.length === 0 && <tr><td colSpan={4} className="muted">No invoices yet.</td></tr>}
           </tbody>
         </table>
       </div>

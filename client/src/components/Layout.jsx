@@ -47,6 +47,7 @@ export default function Layout({ user, onLogout, children }) {
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>Dashboard</NavLink>
           <NavLink to="/customers" className={({ isActive }) => (isActive ? "active" : "")}>Customers</NavLink>
           <NavLink to="/loans" className={({ isActive }) => (isActive ? "active" : "")}>Loans</NavLink>
+          <NavLink to="/invoices" className={({ isActive }) => (isActive ? "active" : "")}>Invoices</NavLink>
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "active" : "")}>Settings</NavLink>
         </nav>
         <main className="content">{children}</main>

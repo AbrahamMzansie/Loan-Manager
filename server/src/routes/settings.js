@@ -15,6 +15,12 @@ router.get("/", async (req, res) => {
     ...settings,
     myDefaultRate: me.defaultRate,
     myDefaultPeriodDays: me.defaultPeriodDays,
+    myInvoiceCompanyName: me.invoiceCompanyName,
+    myInvoiceLogo: me.invoiceLogo,
+    myInvoiceBankAccountHolder: me.invoiceBankAccountHolder,
+    myInvoiceBankAccountNumber: me.invoiceBankAccountNumber,
+    myInvoiceBankName: me.invoiceBankName,
+    myInvoiceBranchCode: me.invoiceBranchCode,
   });
 });
 
@@ -32,12 +38,39 @@ router.put("/", requireAdmin, async (req, res) => {
 // instead of the org-wide defaults above. Pass null to clear and fall
 // back to the org-wide defaults.
 router.put("/me", async (req, res) => {
-  const { defaultRate, defaultPeriodDays } = req.body;
+  const {
+    defaultRate,
+    defaultPeriodDays,
+    invoiceCompanyName,
+    invoiceLogo,
+    invoiceBankAccountHolder,
+    invoiceBankAccountNumber,
+    invoiceBankName,
+    invoiceBranchCode,
+  } = req.body;
   const user = await prisma.user.update({
     where: { id: req.user.id },
-    data: { defaultRate, defaultPeriodDays },
+    data: {
+      defaultRate,
+      defaultPeriodDays,
+      invoiceCompanyName,
+      invoiceLogo,
+      invoiceBankAccountHolder,
+      invoiceBankAccountNumber,
+      invoiceBankName,
+      invoiceBranchCode,
+    },
   });
-  res.json({ defaultRate: user.defaultRate, defaultPeriodDays: user.defaultPeriodDays });
+  res.json({
+    defaultRate: user.defaultRate,
+    defaultPeriodDays: user.defaultPeriodDays,
+    invoiceCompanyName: user.invoiceCompanyName,
+    invoiceLogo: user.invoiceLogo,
+    invoiceBankAccountHolder: user.invoiceBankAccountHolder,
+    invoiceBankAccountNumber: user.invoiceBankAccountNumber,
+    invoiceBankName: user.invoiceBankName,
+    invoiceBranchCode: user.invoiceBranchCode,
+  });
 });
 
 module.exports = router;
