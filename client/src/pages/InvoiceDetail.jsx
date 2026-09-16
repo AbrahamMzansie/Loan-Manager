@@ -25,8 +25,8 @@ export default function InvoiceDetail() {
   if (error && !invoice) return <div className="error-box">{error}</div>;
   if (!invoice) return <PageLoader />;
 
-  function downloadPdf() {
-    generateBusinessInvoicePdf({ company: invoice.company, invoice, total: invoice.total });
+  async function downloadPdf() {
+    await generateBusinessInvoicePdf({ company: invoice.company, invoice, total: invoice.total });
   }
 
   async function sendViaWhatsApp() {

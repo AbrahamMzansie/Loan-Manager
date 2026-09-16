@@ -17,8 +17,8 @@ export default function PublicInvoice() {
   if (error) return <div className="auth-screen"><div className="error-box">{error}</div></div>;
   if (!data) return <PageLoader />;
 
-  function downloadPdf() {
-    generateBusinessInvoicePdf({ company: data.company, invoice: data.invoice, total: data.total });
+  async function downloadPdf() {
+    await generateBusinessInvoicePdf({ company: data.company, invoice: data.invoice, total: data.total });
   }
 
   return (

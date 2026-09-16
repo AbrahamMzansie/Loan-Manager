@@ -4,18 +4,35 @@ function money(n) {
   return `R${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+const LOGO_MAX_WIDTH = 90;
+const LOGO_MAX_HEIGHT = 60;
+const LOGO_GAP_AFTER = 22; // clear space between the logo and the company name below it
+
 // Builds the same content as BusinessInvoiceDocument.jsx, as a real
 // downloadable PDF file, and triggers the save dialog.
-export function generateBusinessInvoicePdf({ company, invoice, total }) {
+export async function generateBusinessInvoicePdf({ company, invoice, total }) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const marginX = 48;
   let y = 56;
 
   if (company.logo) {
     try {
+      const img = await loadImage(company.logo);
+      const scale = Math.min(LOGO_MAX_WIDTH / img.naturalWidth, LOGO_MAX_HEIGHT / img.naturalHeight);
+      const w = img.naturalWidth * scale;
+      const h = img.naturalHeight * scale;
       const format = company.logo.startsWith("data:image/png") ? "PNG" : "JPEG";
-      doc.addImage(company.logo, format, marginX, y, 100, 50, undefined, "FAST");
-      y += 64;
+      doc.addImage(company.logo, format, marginX, y, w, h, undefined, "FAST");
+      y += h + LOGO_GAP_AFTER;
     } catch {
       // Malformed/unsupported image data - skip the logo rather than fail the whole PDF.
     }
