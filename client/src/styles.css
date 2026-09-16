@@ -214,6 +214,31 @@ table.table { width: 100%; border-collapse: collapse; background: white; border-
 .invoice { max-width: 640px; margin: 0 auto; background: white; padding: 32px; border-radius: 10px; }
 .invoice-block { margin: 16px 0; }
 
+.invoice-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 3px solid var(--green); }
+.invoice-header-brand { display: flex; align-items: center; gap: 14px; }
+.invoice-logo { max-height: 64px; max-width: 120px; object-fit: contain; }
+.invoice-company-name { font-size: 20px; font-weight: 700; color: var(--green); margin: 0; }
+.invoice-meta { text-align: right; flex-shrink: 0; }
+.invoice-meta .invoice-number { font-size: 16px; font-weight: 700; color: #222; margin: 0; letter-spacing: 0.5px; }
+.invoice-meta .invoice-date { margin: 4px 0 0; font-size: 12px; color: #888; }
+
+.invoice-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #888; margin: 0 0 6px; }
+.invoice-customer-name { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.invoice-customer-line { margin: 0; font-size: 13px; color: #555; }
+
+.invoice-items { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.invoice-items thead th { background: var(--green); color: white; text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.invoice-items thead th.amount-col, .invoice-items td.amount-col { text-align: right; }
+.invoice-items tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.invoice-items tbody tr:nth-child(even) { background: #fafbfa; }
+.invoice-items td.amount-col { white-space: nowrap; }
+.invoice-items tfoot td { padding: 12px; font-size: 15px; font-weight: 700; border-top: 2px solid var(--green); background: #eef6f1; color: var(--green); }
+
+.invoice-notes { margin-top: 16px; font-size: 13px; color: #777; font-style: italic; }
+
+.invoice-banking { margin-top: 24px; padding: 14px 18px; background: #f6f7f6; border-left: 4px solid var(--green); border-radius: 0 6px 6px 0; }
+.invoice-banking p { margin: 3px 0; font-size: 13px; }
+
 @media print {
   .no-print { display: none; }
   body { background: white; }

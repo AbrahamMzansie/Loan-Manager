@@ -11,39 +11,51 @@ export default function BusinessInvoiceDocument({ company, invoice, total }) {
 
   return (
     <div className="invoice">
-      {company.logo && <img src={company.logo} alt="" style={{ maxHeight: 80, maxWidth: "100%", marginBottom: 12 }} />}
-      <h1>{company.name}</h1>
-      <p>Date: {new Date(invoice.date).toLocaleDateString()}</p>
-
-      <div className="invoice-block">
-        <strong>Billed to</strong>
-        <p>{invoice.customer.name}</p>
-        {invoice.customer.phone && <p>{invoice.customer.phone}</p>}
-        {invoice.customer.email && <p>{invoice.customer.email}</p>}
-        {invoice.customer.address && <p>{invoice.customer.address}</p>}
+      <div className="invoice-header">
+        <div className="invoice-header-brand">
+          {company.logo && <img src={company.logo} alt="" className="invoice-logo" />}
+          <h1 className="invoice-company-name">{company.name}</h1>
+        </div>
+        <div className="invoice-meta">
+          <p className="invoice-number">INVOICE #{invoice.id}</p>
+          <p className="invoice-date">{new Date(invoice.date).toLocaleDateString()}</p>
+        </div>
       </div>
 
-      <table className="table">
+      <div className="invoice-block">
+        <p className="invoice-section-label">Billed to</p>
+        <p className="invoice-customer-name">{invoice.customer.name}</p>
+        {invoice.customer.phone && <p className="invoice-customer-line">{invoice.customer.phone}</p>}
+        {invoice.customer.email && <p className="invoice-customer-line">{invoice.customer.email}</p>}
+        {invoice.customer.address && <p className="invoice-customer-line">{invoice.customer.address}</p>}
+      </div>
+
+      <table className="invoice-items">
+        <thead>
+          <tr><th>Description</th><th className="amount-col">Amount</th></tr>
+        </thead>
         <tbody>
           {invoice.items.map((item, i) => (
             <tr key={i}>
-              <td>[{i + 1}] {item.description}</td>
-              <td>{money(item.amount)}</td>
+              <td>{item.description}</td>
+              <td className="amount-col">{money(item.amount)}</td>
             </tr>
           ))}
-          <tr className="total-row"><td><strong>Total</strong></td><td><strong>{money(total)}</strong></td></tr>
         </tbody>
+        <tfoot>
+          <tr><td>Total</td><td className="amount-col">{money(total)}</td></tr>
+        </tfoot>
       </table>
 
-      {invoice.notes && <p className="muted">{invoice.notes}</p>}
+      {invoice.notes && <p className="invoice-notes">{invoice.notes}</p>}
 
       {hasBanking && (
-        <div className="invoice-block">
-          <strong>Banking details</strong>
-          {company.bankAccountHolder && <p>Account holder: {company.bankAccountHolder}</p>}
-          {company.bankAccountNumber && <p>Account number: {company.bankAccountNumber}</p>}
-          {company.bankName && <p>Bank name: {company.bankName}</p>}
-          {company.branchCode && <p>Branch code: {company.branchCode}</p>}
+        <div className="invoice-banking">
+          <p className="invoice-section-label">Banking details</p>
+          {company.bankAccountHolder && <p><strong>Account holder:</strong> {company.bankAccountHolder}</p>}
+          {company.bankAccountNumber && <p><strong>Account number:</strong> {company.bankAccountNumber}</p>}
+          {company.bankName && <p><strong>Bank name:</strong> {company.bankName}</p>}
+          {company.branchCode && <p><strong>Branch code:</strong> {company.branchCode}</p>}
         </div>
       )}
     </div>
